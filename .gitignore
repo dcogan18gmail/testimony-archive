@@ -1,0 +1,39 @@
+# Environment
+.env
+.env.local
+venv/
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+
+# Audio files (large, don't track in git)
+*.mp3
+*.wav
+*.m4a
+*.ogg
+
+# Audio chunks
+chunks/
+
+# Next.js
+.next/
+out/
+
+# Vercel
+.vercel/
+
+# Generated transcript outputs (keep in prototype/ only)
+uploads/
+transcripts/
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Testing
+coverage/
