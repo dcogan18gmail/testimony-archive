@@ -32,6 +32,7 @@ export async function POST(request: Request): Promise<NextResponse> {
         return {
           allowedContentTypes: [...ACCEPTED_AUDIO_TYPES],
           maximumSizeInBytes: MAX_FILE_SIZE,
+          addRandomSuffix: true,
         };
       },
       onUploadCompleted: async () => {
