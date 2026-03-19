@@ -1,7 +1,19 @@
 "use client";
 
-import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { fetchFile, toBlobURL } from "@ffmpeg/util";
+/**
+ * Audio chunker using ffmpeg.wasm.
+ *
+ * Loading strategy:
+ * - FFmpeg class: loaded via UMD script tag from public/ffmpeg/ffmpeg.js
+ * - Worker (814.ffmpeg.js): auto-loaded by the UMD build from same directory
+ * - Core files (ffmpeg-core.js, ffmpeg-core.wasm): fetched and converted
+ *   to blob URLs, then passed to ffmpeg.load()
+ *
+ * Why blob URLs for core files? The UMD worker uses importScripts() to
+ * load ffmpeg-core.js. Under our COEP headers, importScripts() can fail
+ * even for same-origin resources. Blob URLs are always same-origin and
+ * bypass COEP restrictions entirely.
+ */
 
 const CHUNK_DURATION_SECONDS = 30;
 
@@ -15,31 +27,63 @@ export type ChunkProgress = {
   progress: number; // 0 to 1
 };
 
-let ffmpeg: FFmpeg | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let ffmpeg: any = null;
+let ffmpegLoaded = false;
+
+/** Load a script tag and wait for it to finish. */
+function loadScript(src: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) {
+      resolve();
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = src;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error(`Failed to load ${src}`));
+    document.head.appendChild(script);
+  });
+}
+
+/** Fetch a URL and return a blob:// URL. */
+async function toBlobURL(url: string, mimeType: string): Promise<string> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status}`);
+  const blob = new Blob([await res.arrayBuffer()], { type: mimeType });
+  return URL.createObjectURL(blob);
+}
 
 /**
  * Get or create the singleton FFmpeg instance.
- * Loading ffmpeg.wasm is expensive (~30MB download on first load),
- * so we reuse the same instance across calls.
  */
-async function getFFmpeg(onProgress?: (p: ChunkProgress) => void): Promise<FFmpeg> {
-  if (ffmpeg && ffmpeg.loaded) return ffmpeg;
-
-  ffmpeg = new FFmpeg();
-
-  // Load the wasm binary from a CDN using blob URLs.
-  // toBlobURL fetches the file and creates a local blob:// URL,
-  // which satisfies the COEP "require-corp" header requirement
-  // (regular cross-origin CDN URLs would be blocked by COEP).
-  const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm";
+async function getFFmpeg(onProgress?: (p: ChunkProgress) => void) {
+  if (ffmpeg && ffmpegLoaded) return ffmpeg;
 
   onProgress?.({ stage: "loading", progress: 0 });
 
-  await ffmpeg.load({
-    coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-    wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
-  });
+  // Load the UMD build via script tag → sets window.FFmpegWASM
+  await loadScript("/ffmpeg/ffmpeg.js");
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { FFmpeg } = (globalThis as any).FFmpegWASM;
+  ffmpeg = new FFmpeg();
+
+  onProgress?.({ stage: "loading", progress: 0.1 });
+
+  // Fetch core files and convert to blob URLs.
+  // The worker uses importScripts() to load these, and blob URLs
+  // guarantee same-origin access regardless of COEP headers.
+  const [coreURL, wasmURL] = await Promise.all([
+    toBlobURL("/ffmpeg/ffmpeg-core.js", "text/javascript"),
+    toBlobURL("/ffmpeg/ffmpeg-core.wasm", "application/wasm"),
+  ]);
+
+  onProgress?.({ stage: "loading", progress: 0.7 });
+
+  await ffmpeg.load({ coreURL, wasmURL });
+
+  ffmpegLoaded = true;
   onProgress?.({ stage: "loading", progress: 1 });
 
   return ffmpeg;
@@ -47,15 +91,6 @@ async function getFFmpeg(onProgress?: (p: ChunkProgress) => void): Promise<FFmpe
 
 /**
  * Split an audio file into ~30-second MP3 chunks using ffmpeg.wasm.
- *
- * How it works:
- * 1. Loads ffmpeg.wasm into the browser (if not already loaded)
- * 2. Writes the input file to ffmpeg's virtual filesystem
- * 3. Uses ffmpeg's "segment" muxer to split into 30s pieces
- * 4. Reads each chunk back as a Uint8Array
- *
- * The chunks stay in browser memory (not uploaded anywhere yet).
- * Phase 3 will send them one-at-a-time to Whisper for transcription.
  */
 export async function chunkAudio(
   file: File,
@@ -63,15 +98,12 @@ export async function chunkAudio(
 ): Promise<ChunkResult> {
   const ff = await getFFmpeg(onProgress);
 
-  // Write the uploaded file into ffmpeg's in-memory filesystem
   const inputName = "input" + getExtension(file.name);
-  await ff.writeFile(inputName, await fetchFile(file));
+  const fileData = new Uint8Array(await file.arrayBuffer());
+  await ff.writeFile(inputName, fileData);
 
-  // First, get the duration using ffprobe-style approach:
-  // Run a quick conversion to null output just to read the duration from logs.
   let durationSeconds = 0;
   const logHandler = ({ message }: { type: string; message: string }) => {
-    // ffmpeg logs duration as "Duration: HH:MM:SS.xx"
     const match = message.match(/Duration:\s*(\d+):(\d+):(\d+)\.(\d+)/);
     if (match) {
       const [, hours, minutes, seconds, centiseconds] = match;
@@ -84,20 +116,14 @@ export async function chunkAudio(
   };
   ff.on("log", logHandler);
 
-  // Use ffmpeg's segment muxer to split the audio.
-  // -f segment: use the segment output muxer
-  // -segment_time 30: each segment is ~30 seconds
-  // -c:a libmp3lame -b:a 128k: encode to MP3 at 128kbps
-  // chunk_%03d.mp3: output pattern (chunk_000.mp3, chunk_001.mp3, etc.)
   onProgress?.({ stage: "splitting", progress: 0 });
 
-  // Listen for progress during splitting
   const progressHandler = ({ progress }: { progress: number; time: number }) => {
     onProgress?.({ stage: "splitting", progress: Math.min(progress, 1) });
   };
   ff.on("progress", progressHandler);
 
-  await ff.exec([
+  const exitCode = await ff.exec([
     "-i", inputName,
     "-f", "segment",
     "-segment_time", String(CHUNK_DURATION_SECONDS),
@@ -109,24 +135,25 @@ export async function chunkAudio(
   ff.off("log", logHandler);
   ff.off("progress", progressHandler);
 
-  // Read all the chunk files from the virtual filesystem.
-  // We list the directory and pick up every chunk_*.mp3 file.
+  if (exitCode !== 0) {
+    throw new Error(`Audio splitting failed (ffmpeg exit code ${exitCode})`);
+  }
+
   const files = await ff.listDir("/");
   const chunkFiles = files
-    .filter((f) => !f.isDir && f.name.startsWith("chunk_") && f.name.endsWith(".mp3"))
-    .sort((a, b) => a.name.localeCompare(b.name));
+    .filter((f: { isDir: boolean; name: string }) =>
+      !f.isDir && f.name.startsWith("chunk_") && f.name.endsWith(".mp3")
+    )
+    .sort((a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name));
 
   const chunks: Uint8Array[] = [];
   for (const chunkFile of chunkFiles) {
     const data = await ff.readFile(chunkFile.name);
     chunks.push(data as Uint8Array);
-    // Clean up the chunk file from the virtual filesystem
     await ff.deleteFile(chunkFile.name);
   }
 
-  // Clean up the input file too
   await ff.deleteFile(inputName);
-
   onProgress?.({ stage: "splitting", progress: 1 });
 
   return { chunks, durationSeconds };

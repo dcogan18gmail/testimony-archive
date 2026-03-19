@@ -125,8 +125,14 @@ export default function UploadZone({ onUploadComplete }: Props) {
 
       onUploadComplete?.({ interviewId, blobUrl: blob.url, chunks, durationSeconds });
     } catch (err) {
+      console.error("Upload flow failed:", err);
       setStage("error");
-      setError(err instanceof Error ? err.message : "Upload failed");
+      const message = err instanceof Error
+        ? err.message
+        : typeof err === "string"
+          ? err
+          : JSON.stringify(err);
+      setError(message || "Upload failed (unknown error)");
     }
   }, [onUploadComplete]);
 

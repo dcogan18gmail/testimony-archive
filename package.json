@@ -8,11 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "postinstall": "node scripts/download-ffmpeg-wasm.mjs"
   },
   "dependencies": {
-    "@ffmpeg/ffmpeg": "^0.12.15",
-    "@ffmpeg/util": "^0.12.2",
     "@neondatabase/serverless": "^1.0.2",
     "@vercel/blob": "^2.3.1",
     "drizzle-orm": "^0.45.1",
