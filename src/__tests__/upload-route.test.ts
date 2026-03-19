@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { ACCEPTED_AUDIO_TYPES, MAX_FILE_SIZE } from "@/lib/upload-constants";
 
 /**
  * Tests for POST /api/upload
@@ -61,10 +62,8 @@ describe("POST /api/upload", () => {
     mockedHandleUpload.mockImplementation(async ({ onBeforeGenerateToken }) => {
       // Call the callback to verify it returns the right config
       const config = await onBeforeGenerateToken("test.mp3", null, false);
-      expect(config.allowedContentTypes).toContain("audio/mpeg");
-      expect(config.allowedContentTypes).toContain("audio/wav");
-      expect(config.allowedContentTypes).toContain("audio/flac");
-      expect(config.maximumSizeInBytes).toBe(500 * 1024 * 1024);
+      expect(config.allowedContentTypes).toEqual([...ACCEPTED_AUDIO_TYPES]);
+      expect(config.maximumSizeInBytes).toBe(MAX_FILE_SIZE);
 
       return { type: "blob.generate-client-token" as const, clientToken: "t" };
     });

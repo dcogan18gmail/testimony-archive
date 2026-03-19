@@ -3,21 +3,8 @@
 import { useState, useRef, useCallback } from "react";
 import { upload } from "@vercel/blob/client";
 import { chunkAudio, type ChunkProgress } from "@/lib/audio-chunker";
+import { ACCEPTED_AUDIO_TYPES_SET, MAX_FILE_SIZE } from "@/lib/upload-constants";
 import ProcessingStatus, { type UploadStage } from "./ProcessingStatus";
-
-// Accepted audio MIME types (must match /api/upload allowedContentTypes)
-const ACCEPTED_TYPES = new Set([
-  "audio/mpeg",
-  "audio/mp4",
-  "audio/wav",
-  "audio/x-wav",
-  "audio/webm",
-  "audio/ogg",
-  "audio/flac",
-  "audio/x-m4a",
-]);
-
-const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
 
 /**
  * Drag-and-drop upload zone.
@@ -53,7 +40,7 @@ export default function UploadZone({ onUploadComplete }: Props) {
 
   const handleFile = useCallback(async (file: File) => {
     // Validate file type
-    if (!ACCEPTED_TYPES.has(file.type)) {
+    if (!ACCEPTED_AUDIO_TYPES_SET.has(file.type)) {
       setStage("error");
       setError(`Unsupported file type: ${file.type || "unknown"}. Use MP3, WAV, M4A, FLAC, OGG, or WebM.`);
       return;

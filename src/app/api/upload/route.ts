@@ -1,5 +1,6 @@
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { NextResponse } from "next/server";
+import { ACCEPTED_AUDIO_TYPES, MAX_FILE_SIZE } from "@/lib/upload-constants";
 
 /**
  * This route handles Vercel Blob client uploads.
@@ -29,17 +30,8 @@ export async function POST(request: Request): Promise<NextResponse> {
         // We can validate the user, check permissions, restrict file types, etc.
         // For now we just set sensible limits.
         return {
-          allowedContentTypes: [
-            "audio/mpeg",       // .mp3
-            "audio/mp4",        // .m4a
-            "audio/wav",        // .wav
-            "audio/x-wav",      // .wav (alternate mime)
-            "audio/webm",       // .webm
-            "audio/ogg",        // .ogg
-            "audio/flac",       // .flac
-            "audio/x-m4a",      // .m4a (alternate mime)
-          ],
-          maximumSizeInBytes: 500 * 1024 * 1024, // 500MB max
+          allowedContentTypes: [...ACCEPTED_AUDIO_TYPES],
+          maximumSizeInBytes: MAX_FILE_SIZE,
         };
       },
       onUploadCompleted: async () => {
