@@ -17,6 +17,9 @@ __pycache__/
 # Audio chunks
 chunks/
 
+# ffmpeg.wasm binary (31MB, downloaded at build time)
+public/ffmpeg/ffmpeg-core.wasm
+
 # Next.js
 .next/
 out/

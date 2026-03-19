@@ -1,4 +1,5 @@
 import KeySetup from "@/components/KeySetup";
+import UploadZone from "@/components/UploadZone";
 
 export default function Home() {
   return (
@@ -14,8 +15,8 @@ export default function Home() {
         <KeySetup />
       </div>
 
-      <div className="mb-6 rounded-lg border border-dashed border-zinc-300 p-8 text-center text-sm text-zinc-400">
-        Upload zone coming in Phase 2
+      <div className="mb-6">
+        <UploadZone />
       </div>
 
       <div className="rounded-lg border border-dashed border-zinc-300 p-8 text-center text-sm text-zinc-400">
