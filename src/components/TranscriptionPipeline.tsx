@@ -348,6 +348,12 @@ export default function TranscriptionPipeline({
           <p className="text-sm text-green-700">
             All done! Your transcript is ready to view.
           </p>
+          <a
+            href={`/interviews/${interviewId}`}
+            className="mt-2 inline-block text-sm font-medium text-green-800 underline hover:text-green-900"
+          >
+            View Transcript &rarr;
+          </a>
         </div>
       )}
     </div>

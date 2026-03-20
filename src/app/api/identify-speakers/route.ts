@@ -25,9 +25,12 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Read current transcript from DB
+    // Read current transcripts from DB
     const [interview] = await db
-      .select({ transcriptEnglish: interviews.transcriptEnglish })
+      .select({
+        transcriptEnglish: interviews.transcriptEnglish,
+        transcriptOriginal: interviews.transcriptOriginal,
+      })
       .from(interviews)
       .where(eq(interviews.id, interviewId));
 
@@ -39,10 +42,21 @@ export async function POST(request: NextRequest) {
     const client = createOpenAIClient(openaiKey);
     const { segments: namedSegments, speakers } = await identifySpeakers(client, segments);
 
+    // Apply same speaker names to original transcript
+    const originalSegments = interview.transcriptOriginal as TranscriptSegment[] | null;
+    let namedOriginal = originalSegments;
+    if (originalSegments && namedSegments.length === originalSegments.length) {
+      namedOriginal = originalSegments.map((seg, i) => ({
+        ...seg,
+        speaker: namedSegments[i].speaker,
+      }));
+    }
+
     await db
       .update(interviews)
       .set({
         transcriptEnglish: namedSegments,
+        transcriptOriginal: namedOriginal,
         speakerRoster: speakers,
         currentStep: "identifying_speakers",
       })
