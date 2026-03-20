@@ -38,6 +38,7 @@ export default function Home() {
       {uploadResult && (
         <div className="mb-6">
           <TranscriptionPipeline
+            key={uploadResult.interviewId}
             interviewId={uploadResult.interviewId}
             audioBlobUrl={uploadResult.blobUrl}
             chunks={uploadResult.chunks}

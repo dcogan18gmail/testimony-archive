@@ -25,6 +25,7 @@ export async function submitToAssemblyAI(
       audio_url: audioBlobUrl,
       speaker_labels: true,
       language_detection: true,
+      speech_models: ["universal-3-pro"],
     }),
   });
 
