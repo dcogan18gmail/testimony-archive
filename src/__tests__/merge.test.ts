@@ -20,7 +20,7 @@ describe("mergeTranscripts", () => {
         start: 0,
         end: 5,
         text_english: "Hello world",
-        text_original: "",
+        text_original: "Hello world",
       },
     ]);
   });
@@ -147,21 +147,33 @@ describe("mergeTranscripts", () => {
     expect(result[0].text_english).toBe("Hello world today");
   });
 
-  it("text_original is always empty string", () => {
+  it("populates text_original from AAI utterances with matching text", () => {
     const whisper: WhisperSegment[] = [
-      { start: 0, end: 3, text: "First" },
-      { start: 3, end: 6, text: "Second" },
-      { start: 6, end: 9, text: "Third" },
+      { start: 0, end: 5, text: "Hello" },
+      { start: 5, end: 10, text: "World" },
     ];
     const aai: AAIUtterance[] = [
-      { speaker: "A", start: 0, end: 5, text: "" },
-      { speaker: "B", start: 5, end: 9, text: "" },
+      { speaker: "A", start: 0, end: 5, text: "Hola" },
+      { speaker: "B", start: 5, end: 10, text: "Mundo" },
     ];
 
     const result = mergeTranscripts(whisper, aai);
 
-    for (const seg of result) {
-      expect(seg.text_original).toBe("");
-    }
+    expect(result).toHaveLength(2);
+    expect(result[0].text_original).toBe("Hola");
+    expect(result[1].text_original).toBe("Mundo");
+  });
+
+  it("text_original is empty when AAI utterances have no text", () => {
+    const whisper: WhisperSegment[] = [
+      { start: 0, end: 3, text: "First" },
+    ];
+    const aai: AAIUtterance[] = [
+      { speaker: "A", start: 0, end: 5, text: "" },
+    ];
+
+    const result = mergeTranscripts(whisper, aai);
+
+    expect(result[0].text_original).toBe("");
   });
 });

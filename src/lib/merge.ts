@@ -3,21 +3,26 @@ import type { AAIUtterance } from "./assemblyai";
 import type { TranscriptSegment } from "./types";
 
 /**
- * Find the speaker who has the most overlap with a given time range.
- * Returns the speaker label (e.g., "A", "B") or "?" if no overlap found.
+ * Find the speaker and original-language text that best overlap a given time range.
+ * Returns the speaker label (e.g., "A", "B") and collected original text.
  */
-function findSpeaker(
+function findSpeakerAndOriginal(
   start: number,
   end: number,
   speakerSegments: AAIUtterance[]
-): string {
+): { speaker: string; textOriginal: string } {
   let bestSpeaker = "?";
   let bestOverlap = 0;
+  const overlappingTexts: string[] = [];
 
   for (const seg of speakerSegments) {
     const overlapStart = Math.max(start, seg.start);
     const overlapEnd = Math.min(end, seg.end);
     const overlap = Math.max(0, overlapEnd - overlapStart);
+
+    if (overlap > 0 && seg.text) {
+      overlappingTexts.push(seg.text);
+    }
 
     if (overlap > bestOverlap) {
       bestOverlap = overlap;
@@ -25,31 +30,32 @@ function findSpeaker(
     }
   }
 
-  return bestSpeaker;
+  return { speaker: bestSpeaker, textOriginal: overlappingTexts.join(" ") };
 }
 
 /**
- * Merge Whisper segments (English translations) with AssemblyAI utterances (speaker labels).
+ * Merge Whisper segments (English translations) with AssemblyAI utterances (speaker labels + original text).
  *
- * For each Whisper segment, finds the best matching speaker from AssemblyAI based on
- * timestamp overlap. Then groups consecutive same-speaker segments together.
+ * For each Whisper segment, finds the best matching speaker and original-language text
+ * from AssemblyAI based on timestamp overlap. Then groups consecutive same-speaker segments.
  *
- * Returns TranscriptSegment[] with speaker labels and English text.
- * text_original is set to empty string (AssemblyAI gives us the original language text
- * but we don't have per-segment original text from Whisper).
+ * Returns TranscriptSegment[] with speaker labels, English text, and original-language text.
  */
 export function mergeTranscripts(
   whisperSegments: WhisperSegment[],
   aaiUtterances: AAIUtterance[]
 ): TranscriptSegment[] {
-  // Assign speakers to each Whisper segment
-  const labeled = whisperSegments.map((seg) => ({
-    speaker: findSpeaker(seg.start, seg.end, aaiUtterances),
-    start: seg.start,
-    end: seg.end,
-    text_english: seg.text,
-    text_original: "",
-  }));
+  // Assign speakers and original text to each Whisper segment
+  const labeled = whisperSegments.map((seg) => {
+    const { speaker, textOriginal } = findSpeakerAndOriginal(seg.start, seg.end, aaiUtterances);
+    return {
+      speaker,
+      start: seg.start,
+      end: seg.end,
+      text_english: seg.text,
+      text_original: textOriginal,
+    };
+  });
 
   // Group consecutive segments by same speaker
   const grouped: TranscriptSegment[] = [];
@@ -58,6 +64,9 @@ export function mergeTranscripts(
     if (last && last.speaker === seg.speaker) {
       last.end = seg.end;
       last.text_english += " " + seg.text_english;
+      if (seg.text_original) {
+        last.text_original += last.text_original ? " " + seg.text_original : seg.text_original;
+      }
     } else {
       grouped.push({ ...seg });
     }

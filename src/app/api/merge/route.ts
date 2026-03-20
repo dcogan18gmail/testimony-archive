@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
       .update(interviews)
       .set({
         transcriptEnglish: merged,
+        transcriptOriginal: merged,
         detectedLanguage: detectedLanguage || null,
         currentStep: "merging",
       })
