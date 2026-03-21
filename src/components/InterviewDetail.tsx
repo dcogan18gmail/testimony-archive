@@ -223,7 +223,6 @@ export default function InterviewDetail({
               activeSegmentIndex={activeSegmentIndex}
               onSegmentClick={handleSegmentClick}
               hasOriginal={hasOriginal}
-              readOnly={readOnly}
             />
           ) : (
             <div className="rounded-lg border-2 border-dashed border-border p-8 text-center text-[13px] text-faint">

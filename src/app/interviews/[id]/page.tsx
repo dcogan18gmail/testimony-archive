@@ -1,6 +1,8 @@
 import { db } from "@/lib/db";
 import { interviews } from "@/lib/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import InterviewDetail from "@/components/InterviewDetail";
 import ProcessingView from "@/components/ProcessingView";
 
@@ -13,6 +15,9 @@ export default async function InterviewPage({
   params: Promise<Params>;
   searchParams: Promise<{ view?: string }>;
 }) {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/login");
+
   const { id } = await params;
   const { view } = await searchParams;
   const readOnly = view === "readonly";
@@ -20,7 +25,7 @@ export default async function InterviewPage({
   const [interview] = await db
     .select()
     .from(interviews)
-    .where(eq(interviews.id, id));
+    .where(and(eq(interviews.id, id), eq(interviews.userId, session.user.id)));
 
   if (!interview) {
     return (
@@ -41,12 +46,10 @@ export default async function InterviewPage({
     );
   }
 
-  // If still processing, show progress view
   if (interview.status === "processing") {
     return <ProcessingView interviewId={id} currentStep={interview.currentStep} />;
   }
 
-  // If error, show error state
   if (interview.status === "error") {
     return (
       <div className="mx-auto max-w-[900px] px-6 py-12">
@@ -68,7 +71,6 @@ export default async function InterviewPage({
     );
   }
 
-  // Completed — show full detail view
   const data = {
     id: interview.id,
     originalFilename: interview.originalFilename,

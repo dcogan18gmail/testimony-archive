@@ -42,3 +42,7 @@ transcripts/
 coverage/
 .vercel
 .env*.local
+.gstack/
+
+# TypeScript build info
+tsconfig.tsbuildinfo

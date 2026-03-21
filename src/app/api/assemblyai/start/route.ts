@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { interviews } from "@/lib/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { submitToAssemblyAI } from "@/lib/assemblyai";
+import { getAuthenticatedUserId } from "@/lib/auth-guard";
 
 export async function POST(request: NextRequest) {
+  const userId = await getAuthenticatedUserId();
+  if (userId instanceof NextResponse) return userId;
+
   const apiKey = request.headers.get("x-assemblyai-key");
   if (!apiKey) {
     return NextResponse.json({ error: "Missing X-AssemblyAI-Key header" }, { status: 401 });
@@ -28,7 +32,7 @@ export async function POST(request: NextRequest) {
     await db
       .update(interviews)
       .set({ currentStep: "transcribing" })
-      .where(eq(interviews.id, interviewId));
+      .where(and(eq(interviews.id, interviewId), eq(interviews.userId, userId)));
 
     return NextResponse.json({ transcriptId });
   } catch (error) {

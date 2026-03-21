@@ -28,7 +28,7 @@ export async function summarizeTranscript(
         role: "system",
         content:
           "You are a helpful assistant that summarizes interview transcripts. " +
-          "Write a 3-5 sentence summary covering the main topics discussed and key takeaways. " +
+          "Write a 7-10 sentence summary covering the main topics discussed and key takeaways. " +
           "Be direct and specific. No bullet points or headers.",
       },
       {

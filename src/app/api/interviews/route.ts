@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { interviews } from "@/lib/schema";
+import { getAuthenticatedUserId } from "@/lib/auth-guard";
 
 export async function GET() {
+  const userId = await getAuthenticatedUserId();
+  if (userId instanceof NextResponse) return userId;
+
   const rows = await db
     .select({
       id: interviews.id,
@@ -22,22 +26,16 @@ export async function GET() {
       organization: interviews.organization,
     })
     .from(interviews)
+    .where(eq(interviews.userId, userId))
     .orderBy(desc(interviews.createdAt));
 
   return NextResponse.json(rows);
 }
 
-/**
- * Create a new interview row after the audio file has been uploaded to Blob.
- *
- * The client sends { filename, blobUrl, durationSeconds } after:
- * 1. ffmpeg.wasm has split the audio into chunks (held in browser memory)
- * 2. The full file has been uploaded to Vercel Blob
- *
- * We create a database row with status "processing" and return the new
- * interview ID. Phase 3 will use this ID to attach transcription results.
- */
 export async function POST(request: Request) {
+  const userId = await getAuthenticatedUserId();
+  if (userId instanceof NextResponse) return userId;
+
   let body: { filename?: string; blobUrl?: string; durationSeconds?: number };
 
   try {
@@ -69,6 +67,7 @@ export async function POST(request: Request) {
     const [row] = await db
       .insert(interviews)
       .values({
+        userId,
         originalFilename: filename,
         audioBlobUrl: blobUrl,
         durationSeconds: durationSeconds ?? null,

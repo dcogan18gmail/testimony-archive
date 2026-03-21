@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { pollAssemblyAI } from "@/lib/assemblyai";
+import { getAuthenticatedUserId } from "@/lib/auth-guard";
 
 export async function GET(request: NextRequest) {
+  const userId = await getAuthenticatedUserId();
+  if (userId instanceof NextResponse) return userId;
+
   const apiKey = request.headers.get("x-assemblyai-key");
   if (!apiKey) {
     return NextResponse.json({ error: "Missing X-AssemblyAI-Key header" }, { status: 401 });
