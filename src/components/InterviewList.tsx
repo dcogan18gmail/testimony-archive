@@ -132,7 +132,7 @@ export default function InterviewList() {
     setDownloadError(null);
 
     try {
-      const res = await fetch(`/api/interviews/${id}/export?format=english`);
+      const res = await fetch(`/api/interviews/${id}/export?format=combined`);
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || "Export failed");
@@ -144,7 +144,7 @@ export default function InterviewList() {
       a.href = url;
       a.download =
         res.headers.get("Content-Disposition")?.match(/filename="(.+)"/)?.[1] ||
-        `transcript_english.docx`;
+        `transcript_combined.docx`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -195,7 +195,7 @@ export default function InterviewList() {
                   onClick={(e) => handleDownload(e, interview.id)}
                   disabled={downloadingId === interview.id}
                   className="rounded p-1 text-faint hover:bg-subtle hover:text-muted transition-colors disabled:opacity-50"
-                  title="Download English DOCX"
+                  title="Download Combined DOCX"
                 >
                   {downloadingId === interview.id ? (
                     <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
