@@ -55,8 +55,8 @@ The interface follows an editorial design system documented in [DESIGN.md](DESIG
 ### Setup
 
 ```bash
-git clone https://github.com/dcogan18gmail/transcription-app.git
-cd transcription-app
+git clone https://github.com/dcogan18gmail/testimony-archive.git
+cd testimony-archive
 cp .env.example .env.local
 # Fill in DATABASE_URL and BLOB_READ_WRITE_TOKEN in .env.local
 npm install
