@@ -11,7 +11,6 @@ type TranscriptViewProps = {
   activeSegmentIndex: number | null;
   onSegmentClick: (index: number) => void;
   hasOriginal: boolean;
-  readOnly?: boolean;
 };
 
 export default function TranscriptView({
