@@ -253,8 +253,8 @@ export default function TranscriptionPipeline({
   const steps = ["whisper", "assemblyai", "merge", "speakers", "summary"] as const;
 
   return (
-    <div className="w-full rounded-lg border border-zinc-200 bg-white p-6">
-      <h3 className="mb-4 text-sm font-semibold text-zinc-900">
+    <div className="w-full rounded-lg border border-border bg-card p-6">
+      <h3 className="mb-4 text-[13px] font-semibold text-heading">
         {state.done ? "Transcription complete" : "Processing transcript..."}
       </h3>
 
@@ -274,14 +274,14 @@ export default function TranscriptionPipeline({
               {/* Status icon */}
               <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center">
                 {status === "pending" && (
-                  <div className="h-2 w-2 rounded-full bg-zinc-300" />
+                  <div className="h-2 w-2 rounded-full bg-faint" />
                 )}
                 {status === "running" && (
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-900" />
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-accent" />
                 )}
                 {status === "done" && (
                   <svg
-                    className="h-5 w-5 text-green-500"
+                    className="h-5 w-5 text-success"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -296,7 +296,7 @@ export default function TranscriptionPipeline({
                 )}
                 {status === "error" && (
                   <svg
-                    className="h-5 w-5 text-red-500"
+                    className="h-5 w-5 text-error"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -314,20 +314,20 @@ export default function TranscriptionPipeline({
               {/* Label and progress */}
               <div className="flex-1">
                 <span
-                  className={`text-sm ${
+                  className={`text-[13px] ${
                     status === "done"
-                      ? "text-zinc-500"
+                      ? "text-muted"
                       : status === "error"
-                        ? "text-red-600"
+                        ? "text-error"
                         : status === "running"
-                          ? "font-medium text-zinc-900"
-                          : "text-zinc-400"
+                          ? "font-medium text-heading"
+                          : "text-faint"
                   }`}
                 >
                   {label}
                 </span>
                 {progress && status === "running" && (
-                  <span className="ml-2 text-xs text-zinc-400">{progress}</span>
+                  <span className="ml-2 text-[11px] text-faint">{progress}</span>
                 )}
               </div>
             </div>
@@ -337,20 +337,20 @@ export default function TranscriptionPipeline({
 
       {/* Error display */}
       {state.error && (
-        <div className="mt-4 rounded-md bg-red-50 p-3">
-          <p className="text-sm text-red-700">{state.error}</p>
+        <div className="mt-4 rounded-md bg-error/10 p-3">
+          <p className="text-[13px] text-error">{state.error}</p>
         </div>
       )}
 
       {/* Done message */}
       {state.done && (
-        <div className="mt-4 rounded-md bg-green-50 p-3">
-          <p className="text-sm text-green-700">
+        <div className="mt-4 rounded-md bg-success/10 p-3">
+          <p className="text-[13px] text-success">
             All done! Your transcript is ready to view.
           </p>
           <a
             href={`/interviews/${interviewId}`}
-            className="mt-2 inline-block text-sm font-medium text-green-800 underline hover:text-green-900"
+            className="mt-2 inline-block text-[13px] font-medium text-success underline hover:opacity-80"
           >
             View Transcript &rarr;
           </a>

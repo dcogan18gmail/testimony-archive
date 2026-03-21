@@ -24,16 +24,16 @@ export default async function InterviewPage({
 
   if (!interview) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-12 font-sans text-center">
-        <h1 className="mb-4 text-2xl font-semibold text-zinc-900">
+      <div className="mx-auto max-w-[900px] px-6 py-12 text-center">
+        <h1 className="mb-4 font-serif text-[28px] tracking-[0.01em] text-heading">
           Interview not found
         </h1>
-        <p className="mb-6 text-zinc-500">
+        <p className="mb-6 text-muted">
           The interview you&apos;re looking for doesn&apos;t exist or has been removed.
         </p>
         <a
           href="/"
-          className="text-sm text-zinc-500 hover:text-zinc-700 transition-colors"
+          className="text-[13px] text-muted hover:text-body transition-colors"
         >
           &larr; Back to home
         </a>
@@ -49,18 +49,18 @@ export default async function InterviewPage({
   // If error, show error state
   if (interview.status === "error") {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-12 font-sans">
+      <div className="mx-auto max-w-[900px] px-6 py-12">
         <a
           href="/"
-          className="text-sm text-zinc-500 hover:text-zinc-700 transition-colors"
+          className="text-[13px] text-muted hover:text-body transition-colors"
         >
           &larr; Back to home
         </a>
-        <div className="mt-6 rounded-lg border border-red-200 bg-red-50 p-6">
-          <h1 className="mb-2 text-lg font-semibold text-red-800">
+        <div className="mt-6 rounded-lg border border-error/30 bg-error/10 p-6">
+          <h1 className="mb-2 font-serif text-[22px] tracking-[0.01em] text-error">
             Processing failed
           </h1>
-          <p className="text-sm text-red-700">
+          <p className="text-[13px] text-error">
             {interview.errorMessage || "An unknown error occurred during processing."}
           </p>
         </div>

@@ -31,12 +31,12 @@ export default function KeySetup() {
   }
 
   return (
-    <div className="w-full rounded-lg border border-zinc-200 bg-white p-6">
-      <h2 className="mb-4 text-lg font-semibold text-zinc-900">API Keys</h2>
+    <div className="w-full rounded-lg border border-border bg-card p-6">
+      <h2 className="mb-4 font-serif text-[22px] tracking-[0.01em] text-heading">API Keys</h2>
 
       {saved ? (
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-green-600">
+          <div className="flex items-center gap-2 text-success">
             <svg
               className="h-5 w-5"
               fill="none"
@@ -50,11 +50,11 @@ export default function KeySetup() {
                 d="M5 13l4 4L19 7"
               />
             </svg>
-            <span className="text-sm font-medium">Keys saved</span>
+            <span className="text-[13px] font-medium">Keys saved</span>
           </div>
           <button
             onClick={handleClear}
-            className="text-sm text-zinc-500 hover:text-zinc-700"
+            className="text-[13px] text-muted hover:text-body transition-colors"
           >
             Clear Keys
           </button>
@@ -62,7 +62,7 @@ export default function KeySetup() {
       ) : (
         <div className="flex flex-col gap-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-zinc-700">
+            <label className="mb-1 block text-[13px] font-semibold text-body">
               OpenAI API Key
             </label>
             <input
@@ -70,11 +70,11 @@ export default function KeySetup() {
               value={openaiKey}
               onChange={(e) => setOpenaiKey(e.target.value)}
               placeholder="sk-..."
-              className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none"
+              className="w-full rounded-md border border-border px-3 py-2 text-[13px] text-body focus:border-accent focus:outline-none"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-zinc-700">
+            <label className="mb-1 block text-[13px] font-semibold text-body">
               AssemblyAI API Key
             </label>
             <input
@@ -82,12 +82,12 @@ export default function KeySetup() {
               value={assemblyaiKey}
               onChange={(e) => setAssemblyaiKey(e.target.value)}
               placeholder="Your AssemblyAI key"
-              className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none"
+              className="w-full rounded-md border border-border px-3 py-2 text-[13px] text-body focus:border-accent focus:outline-none"
             />
           </div>
           <button
             onClick={handleSave}
-            className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+            className="rounded-md bg-accent px-4 py-2 text-[13px] font-medium text-white hover:bg-accent-hover transition-colors"
           >
             Save Keys
           </button>

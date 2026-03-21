@@ -55,7 +55,7 @@ export default function TranscriptView({
     <div role="region" aria-label="Transcript">
       {/* Language toggle */}
       <div
-        className="mb-4 flex gap-1 rounded-lg bg-zinc-100 p-1"
+        className="mb-4 flex gap-1 rounded-lg bg-subtle p-1"
         role="radiogroup"
         aria-label="Language display mode"
       >
@@ -77,12 +77,12 @@ export default function TranscriptView({
                   : undefined
               }
               onClick={() => setLanguage(btn.value)}
-              className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+              className={`flex-1 rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors ${
                 isDisabled
-                  ? "cursor-not-allowed bg-zinc-100 text-zinc-600 opacity-50"
+                  ? "cursor-not-allowed text-muted opacity-50"
                   : isActive
-                    ? "bg-zinc-900 text-white"
-                    : "bg-zinc-100 text-zinc-600 hover:text-zinc-900"
+                    ? "bg-accent text-white"
+                    : "text-muted hover:text-heading"
               }`}
             >
               {btn.label}
@@ -102,18 +102,18 @@ export default function TranscriptView({
               ref={setSegmentRef(index)}
               onClick={() => onSegmentClick(index)}
               aria-current={isActive ? "true" : undefined}
-              className={`block w-full min-h-[44px] border-b border-zinc-100 px-3 py-3 text-left transition-transform active:scale-[0.99] ${
+              className={`block w-full min-h-[44px] border-b border-subtle px-3 py-3 text-left transition-transform active:scale-[0.99] ${
                 isActive
-                  ? "border-l-2 border-l-zinc-900 bg-zinc-50"
+                  ? "border-l-2 border-l-accent bg-subtle"
                   : "border-l-2 border-l-transparent"
               }`}
             >
               {/* Speaker + timestamp */}
               <div className="flex items-baseline gap-2">
-                <span className="font-bold text-zinc-900">
+                <span className="font-bold text-heading">
                   {segment.speaker}
                 </span>
-                <span className="text-sm text-zinc-500">
+                <span className="font-mono text-[13px] text-muted">
                   {formatTimestamp(segment.start)}
                 </span>
               </div>
@@ -121,17 +121,17 @@ export default function TranscriptView({
               {/* Transcript text */}
               <div className="mt-1">
                 {language === "english" && (
-                  <p className="text-zinc-900">{segment.text_english}</p>
+                  <p className="text-body">{segment.text_english}</p>
                 )}
 
                 {language === "original" && (
-                  <p className="text-zinc-900">{segment.text_original}</p>
+                  <p className="text-body">{segment.text_original}</p>
                 )}
 
                 {language === "combined" && (
                   <>
-                    <p className="text-zinc-900">{segment.text_original}</p>
-                    <p className="mt-1 italic text-zinc-500">
+                    <p className="text-body">{segment.text_original}</p>
+                    <p className="mt-1 italic text-muted">
                       {segment.text_english}
                     </p>
                   </>

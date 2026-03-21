@@ -123,19 +123,19 @@ export default function InterviewDetail({
   );
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8 pb-24 font-sans">
+    <div className="mx-auto max-w-[1152px] px-6 py-8 pb-24">
       {/* Header */}
       <div className="mb-6">
         <a
           href="/"
-          className="text-sm text-zinc-500 hover:text-zinc-700 transition-colors"
+          className="text-[13px] text-muted hover:text-body transition-colors"
         >
           &larr; Back to home
         </a>
-        <h1 className="mt-2 text-2xl font-semibold text-zinc-900">
+        <h1 className="mt-2 font-serif text-[28px] leading-tight tracking-[0.01em] text-heading">
           {interview.originalFilename}
         </h1>
-        <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-zinc-500">
+        <div className="mt-1 flex flex-wrap items-center gap-3 text-[13px] text-muted">
           {interview.detectedLanguage && (
             <span>Language: {interview.detectedLanguage}</span>
           )}
@@ -145,7 +145,7 @@ export default function InterviewDetail({
             </span>
           )}
           {readOnly && (
-            <span className="rounded bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600">
+            <span className="rounded bg-subtle px-2 py-0.5 text-[11px] text-muted">
               Read-only
             </span>
           )}
@@ -154,11 +154,11 @@ export default function InterviewDetail({
 
       {/* Summary */}
       {interview.summary && (
-        <div className="mb-6 rounded-lg border border-zinc-200 bg-zinc-50 p-4">
-          <h2 className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">
+        <div className="mb-6 rounded-lg border border-border bg-subtle p-4">
+          <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.03em] text-muted">
             Summary
           </h2>
-          <p className="text-sm leading-relaxed text-zinc-800">
+          <p className="text-[15px] leading-relaxed text-body">
             {interview.summary}
           </p>
         </div>
@@ -179,7 +179,7 @@ export default function InterviewDetail({
       <div className="mb-4 md:hidden">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="flex w-full items-center justify-between rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700"
+          className="flex w-full items-center justify-between rounded-lg border border-border bg-card px-4 py-2.5 text-[13px] font-medium text-body"
         >
           Speakers & Metadata
           <svg
@@ -193,13 +193,13 @@ export default function InterviewDetail({
         </button>
 
         {sidebarOpen && (
-          <div className="mt-2 space-y-6 rounded-lg border border-zinc-200 bg-white p-4">
+          <div className="mt-2 space-y-6 rounded-lg border border-border bg-card p-4">
             <SpeakerPanel
               speakers={speakers}
               onRename={handleSpeakerRename}
               readOnly={readOnly}
             />
-            <div className="border-t border-zinc-100 pt-4">
+            <div className="border-t border-subtle pt-4">
               <MetadataEditor
                 eventName={interview.eventName}
                 eventLocation={interview.eventLocation}
@@ -226,23 +226,23 @@ export default function InterviewDetail({
               readOnly={readOnly}
             />
           ) : (
-            <div className="rounded-lg border border-dashed border-zinc-300 p-8 text-center text-sm text-zinc-400">
+            <div className="rounded-lg border-2 border-dashed border-border p-8 text-center text-[13px] text-faint">
               No transcript available.
             </div>
           )}
         </div>
 
-        {/* Sidebar (right, ~35%) — hidden on mobile */}
+        {/* Sidebar (right, ~35%) */}
         <div className="hidden w-0 flex-[35] md:block">
           <div className="sticky top-8 space-y-6">
-            <div className="rounded-lg border border-zinc-200 bg-white p-4">
+            <div className="rounded-lg border border-border bg-card p-4">
               <SpeakerPanel
                 speakers={speakers}
                 onRename={handleSpeakerRename}
                 readOnly={readOnly}
               />
             </div>
-            <div className="rounded-lg border border-zinc-200 bg-white p-4">
+            <div className="rounded-lg border border-border bg-card p-4">
               <MetadataEditor
                 eventName={interview.eventName}
                 eventLocation={interview.eventLocation}

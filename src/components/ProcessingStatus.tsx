@@ -32,22 +32,22 @@ export default function ProcessingStatus({ stage, progress, error, filename }: P
   const percentage = Math.round(progress * 100);
 
   return (
-    <div className="w-full rounded-lg border border-zinc-200 bg-white p-6">
+    <div className="w-full rounded-lg border border-border bg-card p-6">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-medium text-zinc-900">
+        <h3 className="text-[13px] font-semibold text-heading">
           {STAGE_LABELS[stage]}
         </h3>
         {stage !== "done" && stage !== "error" && (
-          <span className="text-xs text-zinc-400">{percentage}%</span>
+          <span className="text-[11px] text-faint">{percentage}%</span>
         )}
       </div>
 
       {/* Progress bar */}
       {stage !== "error" && (
-        <div className="mb-3 h-2 w-full overflow-hidden rounded-full bg-zinc-100">
+        <div className="mb-3 h-2 w-full overflow-hidden rounded-full bg-subtle">
           <div
             className={`h-full rounded-full transition-all duration-300 ${
-              stage === "done" ? "bg-green-500" : "bg-zinc-900"
+              stage === "done" ? "bg-success" : "bg-accent"
             }`}
             style={{ width: `${percentage}%` }}
           />
@@ -56,21 +56,21 @@ export default function ProcessingStatus({ stage, progress, error, filename }: P
 
       {/* File name */}
       {filename && (
-        <p className="text-xs text-zinc-400 truncate">{filename}</p>
+        <p className="text-[11px] text-faint truncate">{filename}</p>
       )}
 
       {/* Error message */}
       {stage === "error" && error && (
-        <p className="text-sm text-red-600">{error}</p>
+        <p className="text-[13px] text-error">{error}</p>
       )}
 
       {/* Done message */}
       {stage === "done" && (
-        <div className="flex items-center gap-2 text-green-600">
+        <div className="flex items-center gap-2 text-success">
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
-          <span className="text-sm">Ready for transcription</span>
+          <span className="text-[13px]">Ready for transcription</span>
         </div>
       )}
     </div>

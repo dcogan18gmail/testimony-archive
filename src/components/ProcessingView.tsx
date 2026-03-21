@@ -40,7 +40,6 @@ export default function ProcessingView({
 
         if (data.status === "completed" || data.status === "error") {
           clearInterval(interval);
-          // Reload to show the full view
           window.location.reload();
         }
       } catch {
@@ -54,19 +53,19 @@ export default function ProcessingView({
   const currentIndex = currentStep ? (STEP_ORDER[currentStep] ?? -1) : -1;
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12 font-sans">
+    <div className="mx-auto max-w-[900px] px-6 py-12">
       <a
         href="/"
-        className="text-sm text-zinc-500 hover:text-zinc-700 transition-colors"
+        className="text-[13px] text-muted hover:text-body transition-colors"
       >
         &larr; Back to home
       </a>
 
-      <div className="mt-8 rounded-lg border border-zinc-200 bg-white p-6">
-        <h1 className="mb-1 text-lg font-semibold text-zinc-900">
+      <div className="mt-8 rounded-lg border border-border bg-card p-6">
+        <h1 className="mb-1 font-serif text-[22px] tracking-[0.01em] text-heading">
           Processing your transcript...
         </h1>
-        <p className="mb-6 text-sm text-zinc-500">
+        <p className="mb-6 text-[13px] text-muted">
           This page will update automatically when processing is complete.
         </p>
 
@@ -80,24 +79,24 @@ export default function ProcessingView({
               <div key={step.key} className="flex items-center gap-3">
                 <div className="flex h-5 w-5 shrink-0 items-center justify-center">
                   {stepStatus === "done" && (
-                    <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-5 w-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   )}
                   {stepStatus === "running" && (
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-900" />
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-accent" />
                   )}
                   {stepStatus === "pending" && (
-                    <div className="h-2 w-2 rounded-full bg-zinc-300" />
+                    <div className="h-2 w-2 rounded-full bg-faint" />
                   )}
                 </div>
                 <span
-                  className={`text-sm ${
+                  className={`text-[13px] ${
                     stepStatus === "done"
-                      ? "text-zinc-500"
+                      ? "text-muted"
                       : stepStatus === "running"
-                        ? "font-medium text-zinc-900"
-                        : "text-zinc-400"
+                        ? "font-medium text-heading"
+                        : "text-faint"
                   }`}
                 >
                   {step.label}

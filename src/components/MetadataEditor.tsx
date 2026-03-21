@@ -69,27 +69,27 @@ export default function MetadataEditor({
 
   return (
     <div className="space-y-3">
-      <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-3">
+      <h3 className="text-[11px] font-semibold uppercase tracking-[0.03em] text-muted mb-3">
         Metadata
       </h3>
 
       {FIELDS.map(({ key, label }) => (
         <div key={key}>
-          <label className="block text-xs uppercase text-zinc-500 mb-1">
+          <label className="block text-[11px] uppercase tracking-[0.03em] text-muted mb-1">
             {label}
           </label>
 
           {readOnly ? (
-            <p className="text-sm text-zinc-900">
-              {values[key] || <span className="text-zinc-400">&mdash;</span>}
+            <p className="text-[13px] text-heading">
+              {values[key] || <span className="text-faint">&mdash;</span>}
             </p>
           ) : (
             <input
               type="text"
               value={values[key]}
               onChange={(e) => handleChange(key, e.target.value)}
-              className="w-full border border-zinc-200 rounded px-2 py-1.5 text-sm
-                         text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-400"
+              className="w-full border border-border rounded px-2 py-1.5 text-[13px]
+                         text-heading focus:outline-none focus:ring-1 focus:ring-accent"
             />
           )}
         </div>
@@ -101,17 +101,17 @@ export default function MetadataEditor({
             type="button"
             onClick={handleSave}
             disabled={!isDirty}
-            className={`text-sm px-3 py-1 rounded transition-colors ${
+            className={`text-[13px] px-3 py-1 rounded transition-colors ${
               isDirty
-                ? "bg-zinc-900 text-white hover:bg-zinc-700 cursor-pointer"
-                : "bg-zinc-100 text-zinc-400 cursor-not-allowed"
+                ? "bg-accent text-white hover:bg-accent-hover cursor-pointer"
+                : "bg-subtle text-faint cursor-not-allowed"
             }`}
           >
             Save
           </button>
 
           <span
-            className={`text-green-600 text-sm transition-opacity duration-500 ${
+            className={`text-success text-[13px] transition-opacity duration-500 ${
               showCheck ? "opacity-100" : "opacity-0"
             }`}
           >

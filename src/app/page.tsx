@@ -20,11 +20,11 @@ export default function Home() {
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12 font-sans">
-      <h1 className="mb-2 text-3xl font-semibold text-zinc-900">
-        Transcription App
+    <div className="mx-auto max-w-[900px] px-6 py-12">
+      <h1 className="mb-2 font-serif text-[32px] leading-tight tracking-[0.01em] text-heading">
+        Testimony Archive
       </h1>
-      <p className="mb-8 text-zinc-500">
+      <p className="mb-8 text-muted">
         Upload audio, transcribe, translate, and identify speakers.
       </p>
 

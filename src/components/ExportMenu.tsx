@@ -74,7 +74,7 @@ export default function ExportMenu({
 
   return (
     <div>
-      <h3 className="mb-3 text-xs font-medium uppercase tracking-wide text-zinc-500">
+      <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.03em] text-muted">
         Export Transcript
       </h3>
       <div className={horizontal ? "flex flex-wrap gap-2" : "space-y-2"}>
@@ -83,17 +83,17 @@ export default function ExportMenu({
             key={key}
             onClick={() => handleExport(key)}
             disabled={disabled || loading !== null}
-            className={`flex items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-700 transition-colors ${
+            className={`flex items-center justify-center rounded-lg border border-border bg-card px-3 py-2.5 text-[13px] text-body transition-colors ${
               horizontal ? "" : "w-full"
             } ${
               disabled || loading !== null
                 ? "cursor-not-allowed opacity-50"
-                : "hover:bg-zinc-50"
+                : "hover:bg-subtle hover:border-border-hover"
             }`}
           >
             {loading === key ? (
               <svg
-                className="mr-2 h-4 w-4 animate-spin text-zinc-400"
+                className="mr-2 h-4 w-4 animate-spin text-faint"
                 fill="none"
                 viewBox="0 0 24 24"
               >
@@ -113,7 +113,7 @@ export default function ExportMenu({
               </svg>
             ) : (
               <svg
-                className="mr-2 h-4 w-4 text-zinc-400"
+                className="mr-2 h-4 w-4 text-faint"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -131,7 +131,7 @@ export default function ExportMenu({
         ))}
       </div>
       {error && (
-        <p className="mt-2 text-xs text-red-600">{error}</p>
+        <p className="mt-2 text-[11px] text-error">{error}</p>
       )}
     </div>
   );

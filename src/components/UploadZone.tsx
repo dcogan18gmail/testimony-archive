@@ -58,8 +58,6 @@ export default function UploadZone({ onUploadComplete }: Props) {
 
     try {
       // Step 1: Split audio into chunks using ffmpeg.wasm
-      // This downloads ffmpeg (~30MB) on first use, then splits the audio
-      // into ~30-second MP3 chunks held in browser memory.
       const onChunkProgress = (p: ChunkProgress) => {
         setStage(p.stage);
         setProgress(p.progress);
@@ -67,8 +65,6 @@ export default function UploadZone({ onUploadComplete }: Props) {
       const { chunks, durationSeconds } = await chunkAudio(file, onChunkProgress);
 
       // Step 2: Upload the full file to Vercel Blob
-      // The browser uploads directly to Blob storage. Our /api/upload route
-      // only handles token exchange (no file bytes pass through the server).
       setStage("uploading");
       setProgress(0);
 
@@ -81,8 +77,6 @@ export default function UploadZone({ onUploadComplete }: Props) {
       });
 
       // Step 3: Create the interview row in the database
-      // We send the blob URL and filename to our server, which creates
-      // a row and returns the interview ID.
       setStage("creating");
       setProgress(1);
 
@@ -103,10 +97,6 @@ export default function UploadZone({ onUploadComplete }: Props) {
 
       const { id: interviewId } = await res.json();
 
-      // Done! The browser now holds:
-      // - chunks[] (Uint8Array[]) for Phase 3 transcription
-      // - interviewId to attach results to
-      // - blobUrl for the full audio file
       setStage("done");
       setProgress(1);
 
@@ -137,7 +127,6 @@ export default function UploadZone({ onUploadComplete }: Props) {
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) handleFile(file);
-      // Reset so the same file can be re-selected
       e.target.value = "";
     },
     [handleFile]
@@ -161,7 +150,7 @@ export default function UploadZone({ onUploadComplete }: Props) {
               setError(undefined);
               setFilename(undefined);
             }}
-            className="mt-3 text-sm text-zinc-500 hover:text-zinc-700"
+            className="mt-3 text-[13px] text-muted hover:text-body transition-colors"
           >
             {stage === "error" ? "Try again" : "Upload another file"}
           </button>
@@ -181,8 +170,8 @@ export default function UploadZone({ onUploadComplete }: Props) {
       onClick={() => !isProcessing && fileInputRef.current?.click()}
       className={`cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
         isDragOver
-          ? "border-zinc-900 bg-zinc-50"
-          : "border-zinc-300 hover:border-zinc-400"
+          ? "border-accent bg-subtle"
+          : "border-border hover:border-border-hover"
       }`}
     >
       <input
@@ -194,7 +183,7 @@ export default function UploadZone({ onUploadComplete }: Props) {
       />
 
       <svg
-        className="mx-auto mb-3 h-10 w-10 text-zinc-400"
+        className="mx-auto mb-3 h-10 w-10 text-faint"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -207,10 +196,10 @@ export default function UploadZone({ onUploadComplete }: Props) {
         />
       </svg>
 
-      <p className="mb-1 text-sm font-medium text-zinc-700">
+      <p className="mb-1 text-[13px] font-medium text-body">
         Drop an audio file here, or click to browse
       </p>
-      <p className="text-xs text-zinc-400">
+      <p className="text-[11px] text-faint">
         MP3, WAV, M4A, FLAC, OGG, or WebM (max 500MB)
       </p>
     </div>
