@@ -72,6 +72,10 @@ On first visit, the app prompts for your OpenAI and AssemblyAI API keys. These a
 |----------|-------------|
 | `DATABASE_URL` | Neon PostgreSQL connection string |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob storage token |
+| `AUTH_SECRET` | Auth.js session secret (generate with `npx auth secret`) |
+| `AUTH_URL` | Production URL (e.g. `https://testimonyarchive.xyz`) |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
 
 ### Running tests
 
