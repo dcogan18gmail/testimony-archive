@@ -1,9 +1,26 @@
 import { NextResponse } from "next/server";
+import { desc } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { interviews } from "@/lib/schema";
 
 export async function GET() {
-  return NextResponse.json([]);
+  const rows = await db
+    .select({
+      id: interviews.id,
+      originalFilename: interviews.originalFilename,
+      createdAt: interviews.createdAt,
+      status: interviews.status,
+      detectedLanguage: interviews.detectedLanguage,
+      durationSeconds: interviews.durationSeconds,
+      summary: interviews.summary,
+      speakerRoster: interviews.speakerRoster,
+      currentStep: interviews.currentStep,
+      errorMessage: interviews.errorMessage,
+    })
+    .from(interviews)
+    .orderBy(desc(interviews.createdAt));
+
+  return NextResponse.json(rows);
 }
 
 /**

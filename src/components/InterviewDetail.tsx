@@ -6,6 +6,7 @@ import TranscriptView from "./TranscriptView";
 import AudioPlayer from "./AudioPlayer";
 import SpeakerPanel from "./SpeakerPanel";
 import MetadataEditor from "./MetadataEditor";
+import ExportMenu from "./ExportMenu";
 
 type InterviewData = {
   id: string;
@@ -169,7 +170,7 @@ export default function InterviewDetail({
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="flex w-full items-center justify-between rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700"
         >
-          Speakers & Metadata
+          Speakers, Metadata & Export
           <svg
             className={`h-4 w-4 transition-transform ${sidebarOpen ? "rotate-180" : ""}`}
             fill="none"
@@ -197,6 +198,14 @@ export default function InterviewDetail({
                 readOnly={readOnly}
               />
             </div>
+            {segments.length > 0 && (
+              <div className="border-t border-zinc-100 pt-4">
+                <ExportMenu
+                  interviewId={interview.id}
+                  hasOriginal={hasOriginal}
+                />
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -240,6 +249,14 @@ export default function InterviewDetail({
                 readOnly={readOnly}
               />
             </div>
+            {segments.length > 0 && (
+              <div className="rounded-lg border border-zinc-200 bg-white p-4">
+                <ExportMenu
+                  interviewId={interview.id}
+                  hasOriginal={hasOriginal}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
