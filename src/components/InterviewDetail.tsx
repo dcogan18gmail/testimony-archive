@@ -6,6 +6,7 @@ import TranscriptView from "./TranscriptView";
 import AudioPlayer from "./AudioPlayer";
 import SpeakerPanel from "./SpeakerPanel";
 import MetadataEditor from "./MetadataEditor";
+import ExportMenu from "./ExportMenu";
 
 type InterviewData = {
   id: string;
@@ -160,6 +161,17 @@ export default function InterviewDetail({
           <p className="text-sm leading-relaxed text-zinc-800">
             {interview.summary}
           </p>
+        </div>
+      )}
+
+      {/* Export buttons (prominent, above transcript) */}
+      {segments.length > 0 && (
+        <div className="mb-6">
+          <ExportMenu
+            interviewId={interview.id}
+            hasOriginal={hasOriginal}
+            horizontal
+          />
         </div>
       )}
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { del } from "@vercel/blob";
 import { db } from "@/lib/db";
 import { interviews } from "@/lib/schema";
 import { eq } from "drizzle-orm";
@@ -72,5 +73,38 @@ export async function PATCH(
   } catch (error) {
     console.error("Failed to update interview:", error);
     return NextResponse.json({ error: "Failed to update interview" }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+
+  try {
+    // Delete the DB row first
+    const [deleted] = await db
+      .delete(interviews)
+      .where(eq(interviews.id, id))
+      .returning({ audioBlobUrl: interviews.audioBlobUrl });
+
+    if (!deleted) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    // Best-effort blob cleanup
+    if (deleted.audioBlobUrl) {
+      try {
+        await del(deleted.audioBlobUrl);
+      } catch (blobError) {
+        console.error("Blob cleanup failed (non-fatal):", blobError);
+      }
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Failed to delete interview:", error);
+    return NextResponse.json({ error: "Failed to delete interview" }, { status: 500 });
   }
 }

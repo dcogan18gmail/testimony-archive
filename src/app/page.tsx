@@ -4,6 +4,7 @@ import { useState } from "react";
 import KeySetup from "@/components/KeySetup";
 import UploadZone from "@/components/UploadZone";
 import TranscriptionPipeline from "@/components/TranscriptionPipeline";
+import InterviewList from "@/components/InterviewList";
 
 type UploadResult = {
   interviewId: string;
@@ -47,9 +48,7 @@ export default function Home() {
         </div>
       )}
 
-      <div className="rounded-lg border border-dashed border-zinc-300 p-8 text-center text-sm text-zinc-400">
-        Interview list coming in Phase 5
-      </div>
+      <InterviewList />
     </div>
   );
 }
