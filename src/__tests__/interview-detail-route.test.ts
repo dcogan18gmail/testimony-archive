@@ -13,6 +13,10 @@ const mockDeleteWhere = vi.fn();
 const mockDeleteReturning = vi.fn();
 
 // Default return values are set in beforeEach; tests override as needed
+vi.mock("@/lib/auth-guard", () => ({
+  getAuthenticatedUserId: vi.fn(() => Promise.resolve("test-user-id")),
+}));
+
 vi.mock("@/lib/db", () => ({
   db: {
     select: (...args: unknown[]) => {
@@ -54,11 +58,13 @@ vi.mock("@/lib/schema", () => ({
   interviews: {
     id: "id",
     audioBlobUrl: "audio_blob_url",
+    userId: "user_id",
   },
 }));
 
 vi.mock("drizzle-orm", () => ({
   eq: (col: unknown, val: unknown) => ({ col, val }),
+  and: (...args: unknown[]) => args,
 }));
 
 import { GET, DELETE } from "@/app/api/interviews/[id]/route";

@@ -2,6 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 let queryResult: unknown[] = [];
 
+vi.mock("@/lib/auth-guard", () => ({
+  getAuthenticatedUserId: vi.fn(() => Promise.resolve("test-user-id")),
+}));
+
 vi.mock("@/lib/db", () => ({
   db: {
     select: () => ({
@@ -17,11 +21,13 @@ vi.mock("@/lib/db", () => ({
 vi.mock("@/lib/schema", () => ({
   interviews: {
     id: "id",
+    userId: "user_id",
   },
 }));
 
 vi.mock("drizzle-orm", () => ({
   eq: vi.fn((a: unknown, b: unknown) => ({ a, b })),
+  and: (...args: unknown[]) => args,
 }));
 
 // Mock Packer to avoid full docx generation in route tests

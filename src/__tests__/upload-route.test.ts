@@ -10,6 +10,22 @@ import { ACCEPTED_AUDIO_TYPES, MAX_FILE_SIZE } from "@/lib/upload-constants";
  */
 
 // Mock handleUpload before importing the route
+vi.mock("@/lib/auth-guard", () => ({
+  getAuthenticatedUserId: vi.fn(() => Promise.resolve("test-user-id")),
+}));
+
+vi.mock("@/lib/schema", () => ({
+  interviews: { id: "id", userId: "userId" },
+  users: {},
+  accounts: {},
+  sessions: {},
+  verificationTokens: {},
+}));
+
+vi.mock("@/lib/db", () => ({
+  db: {},
+}));
+
 vi.mock("@vercel/blob/client", () => ({
   handleUpload: vi.fn(),
 }));

@@ -37,9 +37,8 @@ Return ONLY the JSON object, no other text.`;
 
   try {
     const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-5.4-nano",
       messages: [{ role: "user", content: prompt }],
-      temperature: 0,
     });
 
     const content = response.choices[0]?.message?.content?.trim() || "{}";

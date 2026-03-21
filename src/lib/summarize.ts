@@ -22,7 +22,7 @@ export async function summarizeTranscript(
       : transcriptText;
 
   const response = await client.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: "gpt-5.4-nano",
     messages: [
       {
         role: "system",
@@ -36,7 +36,6 @@ export async function summarizeTranscript(
         content: `Please summarize this interview transcript:\n\n${truncated}`,
       },
     ],
-    temperature: 0.3,
   });
 
   return response.choices[0]?.message?.content?.trim() || "Summary could not be generated.";

@@ -32,7 +32,7 @@ The result is a transcript with synchronized audio playback, editable metadata, 
 - **Database:** PostgreSQL via Neon (serverless)
 - **ORM:** Drizzle
 - **Storage:** Vercel Blob
-- **AI:** OpenAI API (Whisper, GPT-4o), AssemblyAI
+- **AI:** OpenAI API (Whisper, GPT-5.4 Nano), AssemblyAI
 - **Audio processing:** ffmpeg.wasm (browser-side chunking)
 - **Styling:** Tailwind CSS 4
 - **Testing:** Vitest + React Testing Library

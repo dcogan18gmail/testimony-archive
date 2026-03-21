@@ -13,6 +13,18 @@ const mockInsert = vi.fn();
 const mockValues = vi.fn();
 const mockReturning = vi.fn();
 
+vi.mock("@/lib/auth-guard", () => ({
+  getAuthenticatedUserId: vi.fn(() => Promise.resolve("test-user-id")),
+}));
+
+vi.mock("@/lib/schema", () => ({
+  interviews: { id: "id", userId: "userId" },
+  users: {},
+  accounts: {},
+  sessions: {},
+  verificationTokens: {},
+}));
+
 vi.mock("@/lib/db", () => ({
   db: {
     insert: (...args: unknown[]) => {
@@ -72,6 +84,7 @@ describe("POST /api/interviews", () => {
     await POST(request);
 
     expect(mockValues).toHaveBeenCalledWith({
+      userId: "test-user-id",
       originalFilename: "my-file.wav",
       audioBlobUrl: "https://blob.vercel-storage.com/my-file.wav",
       durationSeconds: 45.5,

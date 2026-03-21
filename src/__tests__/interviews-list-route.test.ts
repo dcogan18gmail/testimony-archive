@@ -7,7 +7,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mockSelect = vi.fn();
 const mockFrom = vi.fn();
+const mockWhere = vi.fn();
 const mockOrderBy = vi.fn();
+
+vi.mock("@/lib/auth-guard", () => ({
+  getAuthenticatedUserId: vi.fn(() => Promise.resolve("test-user-id")),
+}));
 
 vi.mock("@/lib/db", () => ({
   db: {
@@ -17,9 +22,14 @@ vi.mock("@/lib/db", () => ({
         from: (...fArgs: unknown[]) => {
           mockFrom(...fArgs);
           return {
-            orderBy: (...oArgs: unknown[]) => {
-              mockOrderBy(...oArgs);
-              return Promise.resolve([]);
+            where: (...wArgs: unknown[]) => {
+              mockWhere(...wArgs);
+              return {
+                orderBy: (...oArgs: unknown[]) => {
+                  mockOrderBy(...oArgs);
+                  return Promise.resolve([]);
+                },
+              };
             },
           };
         },
@@ -29,6 +39,7 @@ vi.mock("@/lib/db", () => ({
 }));
 
 vi.mock("drizzle-orm", () => ({
+  eq: vi.fn((a: unknown, b: unknown) => ({ a, b })),
   desc: (col: unknown) => ({ desc: col }),
 }));
 
@@ -48,6 +59,7 @@ vi.mock("@/lib/schema", () => ({
     eventLocation: "event_location",
     interviewer: "interviewer",
     organization: "organization",
+    userId: "user_id",
   },
 }));
 
