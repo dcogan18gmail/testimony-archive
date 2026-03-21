@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession, signOut } from "next-auth/react";
 import KeySetup from "@/components/KeySetup";
 import UploadZone from "@/components/UploadZone";
 import TranscriptionPipeline from "@/components/TranscriptionPipeline";
@@ -13,21 +14,19 @@ type UploadResult = {
   durationSeconds: number;
 };
 
-// Chunk duration matches what audio-chunker produces (30 seconds)
 const CHUNK_DURATION_SECONDS = 30;
 
 export default function Home() {
+  const { data: session } = useSession();
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
   const [hasKeys, setHasKeys] = useState<boolean | null>(null);
 
-  // Check localStorage for keys on mount
   useEffect(() => {
     const openai = localStorage.getItem("openai_api_key");
     const assemblyai = localStorage.getItem("assemblyai_api_key");
     setHasKeys(!!openai && !!assemblyai);
   }, []);
 
-  // Listen for storage changes (when KeySetup saves or clears keys)
   useEffect(() => {
     function check() {
       const openai = localStorage.getItem("openai_api_key");
@@ -35,7 +34,6 @@ export default function Home() {
       setHasKeys(!!openai && !!assemblyai);
     }
     window.addEventListener("storage", check);
-    // Also poll briefly to catch same-tab changes
     const interval = setInterval(check, 500);
     return () => {
       window.removeEventListener("storage", check);
@@ -43,22 +41,29 @@ export default function Home() {
     };
   }, []);
 
-  // Avoid flash before localStorage is read
   if (hasKeys === null) return null;
 
-  // No keys: show focused setup screen
   if (!hasKeys) {
     return (
       <div className="mx-auto max-w-[900px] px-6 py-12">
-        <h1 className="text-center font-serif text-[32px] leading-tight tracking-[0.01em] text-heading">
-          Testimony Archive
-        </h1>
+        <div className="mb-8 flex items-center justify-between">
+          <h1 className="font-serif text-[32px] leading-tight tracking-[0.01em] text-heading">
+            Testimony Archive
+          </h1>
+          {session?.user && (
+            <button
+              onClick={() => signOut()}
+              className="text-[13px] text-muted hover:text-body transition-colors"
+            >
+              Sign out
+            </button>
+          )}
+        </div>
         <KeySetup />
       </div>
     );
   }
 
-  // Keys saved: show main app with settings icon in header
   return (
     <div className="mx-auto max-w-[900px] px-6 py-12">
       <div className="mb-8 flex items-start justify-between">
@@ -70,7 +75,17 @@ export default function Home() {
             Upload audio, transcribe, translate, and identify speakers.
           </p>
         </div>
-        <KeySetup />
+        <div className="flex items-center gap-4">
+          <KeySetup />
+          {session?.user && (
+            <button
+              onClick={() => signOut()}
+              className="text-[13px] text-muted hover:text-body transition-colors"
+            >
+              Sign out
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="mb-6">

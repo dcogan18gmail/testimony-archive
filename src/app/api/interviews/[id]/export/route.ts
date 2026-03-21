@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { Packer } from "docx";
 import { db } from "@/lib/db";
 import { interviews } from "@/lib/schema";
 import { generateDocx, type ExportFormat } from "@/lib/generate-docx";
+import { getAuthenticatedUserId } from "@/lib/auth-guard";
 import type { TranscriptSegment, SpeakerInfo } from "@/lib/types";
 
 const VALID_FORMATS = new Set(["english", "original", "combined"]);
@@ -12,6 +13,9 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const userId = await getAuthenticatedUserId();
+  if (userId instanceof NextResponse) return userId;
+
   const { id } = await params;
   const format = request.nextUrl.searchParams.get("format") || "english";
 
@@ -25,7 +29,7 @@ export async function GET(
   const [interview] = await db
     .select()
     .from(interviews)
-    .where(eq(interviews.id, id))
+    .where(and(eq(interviews.id, id), eq(interviews.userId, userId)))
     .limit(1);
 
   if (!interview) {
@@ -43,7 +47,6 @@ export async function GET(
 
   const transcriptOriginal = interview.transcriptOriginal as TranscriptSegment[] | null;
 
-  // For "original" format, require that original text exists
   if (format === "original" && !transcriptOriginal) {
     return NextResponse.json(
       { error: "Original language transcript not available" },

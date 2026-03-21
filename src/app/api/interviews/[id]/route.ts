@@ -2,19 +2,23 @@ import { NextRequest, NextResponse } from "next/server";
 import { del } from "@vercel/blob";
 import { db } from "@/lib/db";
 import { interviews } from "@/lib/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
+import { getAuthenticatedUserId } from "@/lib/auth-guard";
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const userId = await getAuthenticatedUserId();
+  if (userId instanceof NextResponse) return userId;
+
   const { id } = await params;
 
   try {
     const [interview] = await db
       .select()
       .from(interviews)
-      .where(eq(interviews.id, id));
+      .where(and(eq(interviews.id, id), eq(interviews.userId, userId)));
 
     if (!interview) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -31,6 +35,9 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const userId = await getAuthenticatedUserId();
+  if (userId instanceof NextResponse) return userId;
+
   const { id } = await params;
 
   let body: {
@@ -62,7 +69,7 @@ export async function PATCH(
     const [updated] = await db
       .update(interviews)
       .set(updates)
-      .where(eq(interviews.id, id))
+      .where(and(eq(interviews.id, id), eq(interviews.userId, userId)))
       .returning();
 
     if (!updated) {
@@ -80,20 +87,21 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const userId = await getAuthenticatedUserId();
+  if (userId instanceof NextResponse) return userId;
+
   const { id } = await params;
 
   try {
-    // Delete the DB row first
     const [deleted] = await db
       .delete(interviews)
-      .where(eq(interviews.id, id))
+      .where(and(eq(interviews.id, id), eq(interviews.userId, userId)))
       .returning({ audioBlobUrl: interviews.audioBlobUrl });
 
     if (!deleted) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    // Best-effort blob cleanup
     if (deleted.audioBlobUrl) {
       try {
         await del(deleted.audioBlobUrl);

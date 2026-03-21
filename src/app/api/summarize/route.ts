@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { interviews } from "@/lib/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { createOpenAIClient } from "@/lib/openai";
 import { summarizeTranscript } from "@/lib/summarize";
+import { getAuthenticatedUserId } from "@/lib/auth-guard";
 import type { TranscriptSegment } from "@/lib/types";
 
 export async function POST(request: NextRequest) {
+  const userId = await getAuthenticatedUserId();
+  if (userId instanceof NextResponse) return userId;
+
   const openaiKey = request.headers.get("x-openai-key");
   if (!openaiKey) {
     return NextResponse.json({ error: "Missing X-OpenAI-Key header" }, { status: 401 });
@@ -28,7 +32,7 @@ export async function POST(request: NextRequest) {
     const [interview] = await db
       .select({ transcriptEnglish: interviews.transcriptEnglish })
       .from(interviews)
-      .where(eq(interviews.id, interviewId));
+      .where(and(eq(interviews.id, interviewId), eq(interviews.userId, userId)));
 
     if (!interview?.transcriptEnglish) {
       return NextResponse.json({ error: "No transcript found for this interview" }, { status: 404 });
@@ -45,7 +49,7 @@ export async function POST(request: NextRequest) {
         status: "completed",
         currentStep: "finalizing",
       })
-      .where(eq(interviews.id, interviewId));
+      .where(and(eq(interviews.id, interviewId), eq(interviews.userId, userId)));
 
     return NextResponse.json({ summary });
   } catch (error) {

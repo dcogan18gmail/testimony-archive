@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { interviews } from "@/lib/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
+import { getAuthenticatedUserId } from "@/lib/auth-guard";
 import type { TranscriptSegment, SpeakerInfo } from "@/lib/types";
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const userId = await getAuthenticatedUserId();
+  if (userId instanceof NextResponse) return userId;
+
   const { id } = await params;
 
   let body: { oldName?: string; newName?: string };
@@ -33,25 +37,22 @@ export async function PATCH(
         speakerRoster: interviews.speakerRoster,
       })
       .from(interviews)
-      .where(eq(interviews.id, id));
+      .where(and(eq(interviews.id, id), eq(interviews.userId, userId)));
 
     if (!interview) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    // Rename speaker in English transcript
     const englishSegments = (interview.transcriptEnglish as TranscriptSegment[] | null) || [];
     const updatedEnglish = englishSegments.map((seg) =>
       seg.speaker === oldName ? { ...seg, speaker: newName } : seg
     );
 
-    // Rename speaker in original transcript
     const originalSegments = (interview.transcriptOriginal as TranscriptSegment[] | null) || [];
     const updatedOriginal = originalSegments.map((seg) =>
       seg.speaker === oldName ? { ...seg, speaker: newName } : seg
     );
 
-    // Rename in speaker roster
     const roster = (interview.speakerRoster as SpeakerInfo[] | null) || [];
     const updatedRoster = roster.map((s) =>
       s.name === oldName
@@ -66,7 +67,7 @@ export async function PATCH(
         transcriptOriginal: updatedOriginal,
         speakerRoster: updatedRoster,
       })
-      .where(eq(interviews.id, id));
+      .where(and(eq(interviews.id, id), eq(interviews.userId, userId)));
 
     return NextResponse.json({ speakerRoster: updatedRoster });
   } catch (error) {

@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { interviews } from "@/lib/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { mergeTranscripts } from "@/lib/merge";
+import { getAuthenticatedUserId } from "@/lib/auth-guard";
 import type { WhisperSegment } from "@/lib/whisper";
 import type { AAIUtterance } from "@/lib/assemblyai";
 
 export async function POST(request: NextRequest) {
+  const userId = await getAuthenticatedUserId();
+  if (userId instanceof NextResponse) return userId;
+
   let body: {
     interviewId?: string;
     whisperSegments?: WhisperSegment[];
@@ -32,7 +36,7 @@ export async function POST(request: NextRequest) {
   try {
     const merged = mergeTranscripts(whisperSegments, aaiUtterances);
 
-    await db
+    const [updated] = await db
       .update(interviews)
       .set({
         transcriptEnglish: merged,
@@ -40,7 +44,12 @@ export async function POST(request: NextRequest) {
         detectedLanguage: detectedLanguage || null,
         currentStep: "merging",
       })
-      .where(eq(interviews.id, interviewId));
+      .where(and(eq(interviews.id, interviewId), eq(interviews.userId, userId)))
+      .returning({ id: interviews.id });
+
+    if (!updated) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
 
     return NextResponse.json({ segmentCount: merged.length });
   } catch (error) {
