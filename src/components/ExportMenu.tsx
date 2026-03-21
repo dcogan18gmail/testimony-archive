@@ -7,11 +7,13 @@ type ExportFormat = "english" | "original" | "combined";
 type ExportMenuProps = {
   interviewId: string;
   hasOriginal: boolean;
+  horizontal?: boolean;
 };
 
 export default function ExportMenu({
   interviewId,
   hasOriginal,
+  horizontal = false,
 }: ExportMenuProps) {
   const [loading, setLoading] = useState<ExportFormat | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -75,13 +77,15 @@ export default function ExportMenu({
       <h3 className="mb-3 text-xs font-medium uppercase tracking-wide text-zinc-500">
         Export Transcript
       </h3>
-      <div className="space-y-2">
+      <div className={horizontal ? "flex flex-wrap gap-2" : "space-y-2"}>
         {formats.map(({ key, label, disabled }) => (
           <button
             key={key}
             onClick={() => handleExport(key)}
             disabled={disabled || loading !== null}
-            className={`flex w-full items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-700 transition-colors ${
+            className={`flex items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-700 transition-colors ${
+              horizontal ? "" : "w-full"
+            } ${
               disabled || loading !== null
                 ? "cursor-not-allowed opacity-50"
                 : "hover:bg-zinc-50"

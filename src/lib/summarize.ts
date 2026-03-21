@@ -28,9 +28,8 @@ export async function summarizeTranscript(
         role: "system",
         content:
           "You are a helpful assistant that summarizes interview transcripts. " +
-          "Write a clear, concise summary covering the main topics discussed, " +
-          "key points made by each speaker, and any notable quotes or moments. " +
-          "Keep it under 500 words.",
+          "Write a 3-5 sentence summary covering the main topics discussed and key takeaways. " +
+          "Be direct and specific. No bullet points or headers.",
       },
       {
         role: "user",

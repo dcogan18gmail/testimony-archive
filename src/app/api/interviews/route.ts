@@ -16,6 +16,10 @@ export async function GET() {
       speakerRoster: interviews.speakerRoster,
       currentStep: interviews.currentStep,
       errorMessage: interviews.errorMessage,
+      eventName: interviews.eventName,
+      eventLocation: interviews.eventLocation,
+      interviewer: interviews.interviewer,
+      organization: interviews.organization,
     })
     .from(interviews)
     .orderBy(desc(interviews.createdAt));
