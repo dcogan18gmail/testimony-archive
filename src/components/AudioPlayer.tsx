@@ -23,14 +23,12 @@ export default function AudioPlayer({
   const [localTime, setLocalTime] = useState(0);
   const [volume, setVolume] = useState(1);
   const [dragging, setDragging] = useState(false);
-  // Track whether the seek came from outside (transcript click) vs internal playback
   const seekedExternally = useRef(false);
 
   // Sync audio element when parent sends a new currentTime (e.g. transcript click-to-seek)
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || dragging) return;
-    // Only sync for meaningful external seeks (not feedback from our own onTimeUpdate)
     if (Math.abs(audio.currentTime - currentTime) > 1) {
       seekedExternally.current = true;
       audio.currentTime = currentTime;
@@ -129,7 +127,7 @@ export default function AudioPlayer({
   const progress = duration > 0 ? (localTime / duration) * 100 : 0;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-zinc-200 bg-white px-6 py-3">
+    <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card px-6 py-3">
       <audio
         ref={audioRef}
         src={src}
@@ -156,7 +154,7 @@ export default function AudioPlayer({
         {/* Play/Pause */}
         <button
           onClick={togglePlay}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-white hover:bg-zinc-700 transition-colors"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-white hover:bg-accent-hover transition-colors"
           aria-label={playing ? "Pause" : "Play"}
         >
           {playing ? (
@@ -172,7 +170,7 @@ export default function AudioPlayer({
         </button>
 
         {/* Time current */}
-        <span className="w-12 shrink-0 text-right text-xs tabular-nums text-zinc-500">
+        <span className="w-12 shrink-0 text-right font-mono text-[11px] tabular-nums text-muted">
           {formatTimestamp(localTime)}
         </span>
 
@@ -182,21 +180,21 @@ export default function AudioPlayer({
           className="relative flex h-5 flex-1 cursor-pointer items-center"
           onClick={handleProgressClick}
         >
-          <div className="h-1.5 w-full rounded-full bg-zinc-200">
+          <div className="h-1.5 w-full rounded-full bg-subtle">
             <div
-              className="h-full rounded-full bg-zinc-900 transition-[width] duration-75"
+              className="h-full rounded-full bg-accent transition-[width] duration-75"
               style={{ width: `${progress}%` }}
             />
           </div>
           <div
-            className="absolute -translate-x-1/2 -translate-y-1/2 top-1/2 h-3.5 w-3.5 rounded-full bg-zinc-900 shadow-sm hover:scale-110 transition-transform cursor-grab active:cursor-grabbing"
+            className="absolute -translate-x-1/2 -translate-y-1/2 top-1/2 h-3.5 w-3.5 rounded-full bg-accent shadow-sm hover:scale-110 transition-transform cursor-grab active:cursor-grabbing"
             style={{ left: `${progress}%` }}
             onMouseDown={handleDragStart}
           />
         </div>
 
         {/* Time total */}
-        <span className="w-12 shrink-0 text-xs tabular-nums text-zinc-500">
+        <span className="w-12 shrink-0 font-mono text-[11px] tabular-nums text-muted">
           {formatTimestamp(duration)}
         </span>
 
@@ -209,7 +207,7 @@ export default function AudioPlayer({
             fill="none"
             stroke="currentColor"
             strokeWidth="1.5"
-            className="text-zinc-500"
+            className="text-muted"
           >
             <path d="M2 5.5h2l3.5-3v11l-3.5-3H2a.5.5 0 01-.5-.5V6a.5.5 0 01.5-.5z" fill="currentColor" />
             {volume > 0 && (
@@ -226,7 +224,7 @@ export default function AudioPlayer({
             step="0.05"
             value={volume}
             onChange={handleVolumeChange}
-            className="h-1 w-16 cursor-pointer accent-zinc-900"
+            className="h-1 w-16 cursor-pointer accent-accent"
             aria-label="Volume"
           />
         </div>

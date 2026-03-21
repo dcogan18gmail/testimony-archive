@@ -28,15 +28,15 @@ function formatDuration(seconds: number): string {
 
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
-    completed: "bg-green-100 text-green-700",
-    processing: "bg-amber-100 text-amber-700",
-    error: "bg-red-100 text-red-700",
+    completed: "bg-success/10 text-success",
+    processing: "bg-warning/10 text-warning",
+    error: "bg-error/10 text-error",
   };
 
   return (
     <span
-      className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-        styles[status] || "bg-zinc-100 text-zinc-600"
+      className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${
+        styles[status] || "bg-subtle text-muted"
       }`}
     >
       {status}
@@ -55,10 +55,10 @@ function MetadataRow({ interview }: { interview: InterviewSummary }) {
   if (fields.length === 0) return null;
 
   return (
-    <div className="mt-1 flex flex-wrap items-center gap-1 text-xs text-zinc-400">
+    <div className="mt-1 flex flex-wrap items-center gap-1 text-[11px] text-faint">
       {fields.map((field, i) => (
         <span key={i}>
-          {i > 0 && <span className="mr-1 text-zinc-300">&middot;</span>}
+          {i > 0 && <span className="mr-1 text-border">&middot;</span>}
           {field}
         </span>
       ))}
@@ -132,7 +132,7 @@ export default function InterviewList() {
     setDownloadError(null);
 
     try {
-      const res = await fetch(`/api/interviews/${id}/export?format=english`);
+      const res = await fetch(`/api/interviews/${id}/export?format=combined`);
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || "Export failed");
@@ -144,7 +144,7 @@ export default function InterviewList() {
       a.href = url;
       a.download =
         res.headers.get("Content-Disposition")?.match(/filename="(.+)"/)?.[1] ||
-        `transcript_english.docx`;
+        `transcript_combined.docx`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -160,9 +160,9 @@ export default function InterviewList() {
 
   if (interviews.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-zinc-300 p-8 text-center">
-        <p className="text-sm text-zinc-500">No interviews yet</p>
-        <p className="mt-1 text-xs text-zinc-400">
+      <div className="rounded-lg border-2 border-dashed border-border p-8 text-center">
+        <p className="text-[13px] text-muted">No interviews yet</p>
+        <p className="mt-1 text-[11px] text-faint">
           Upload an audio file above to get started.
         </p>
       </div>
@@ -171,21 +171,21 @@ export default function InterviewList() {
 
   return (
     <div className="space-y-3">
-      <h2 className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+      <h2 className="text-[11px] font-semibold uppercase tracking-[0.03em] text-muted">
         Interviews
       </h2>
       {downloadError && (
-        <p className="text-xs text-red-600">{downloadError}</p>
+        <p className="text-[11px] text-error">{downloadError}</p>
       )}
       {interviews.map((interview) => (
         <Link
           key={interview.id}
           href={`/interviews/${interview.id}`}
-          className="block rounded-lg border border-zinc-200 bg-white p-4 transition-colors hover:border-zinc-300"
+          className="block rounded-lg border border-border bg-card p-4 transition-colors hover:border-border-hover"
         >
           {/* Top row: filename + date + action buttons */}
           <div className="flex items-start justify-between gap-2">
-            <span className="text-sm font-medium text-zinc-900 truncate">
+            <span className="text-[13px] font-medium text-heading truncate">
               {interview.originalFilename}
             </span>
             <div className="flex shrink-0 items-center gap-2">
@@ -194,8 +194,8 @@ export default function InterviewList() {
                 <button
                   onClick={(e) => handleDownload(e, interview.id)}
                   disabled={downloadingId === interview.id}
-                  className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 transition-colors disabled:opacity-50"
-                  title="Download English DOCX"
+                  className="rounded p-1 text-faint hover:bg-subtle hover:text-muted transition-colors disabled:opacity-50"
+                  title="Download Combined DOCX"
                 >
                   {downloadingId === interview.id ? (
                     <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -213,7 +213,7 @@ export default function InterviewList() {
               <button
                 onClick={(e) => handleDelete(e, interview.id, interview.originalFilename)}
                 disabled={deletingId === interview.id}
-                className="rounded p-1 text-zinc-400 hover:bg-red-50 hover:text-red-500 transition-colors disabled:opacity-50"
+                className="rounded p-1 text-faint hover:bg-error/10 hover:text-error transition-colors disabled:opacity-50"
                 title="Delete interview"
               >
                 {deletingId === interview.id ? (
@@ -227,24 +227,24 @@ export default function InterviewList() {
                   </svg>
                 )}
               </button>
-              <span className="text-xs text-zinc-400">
+              <span className="text-[11px] text-faint">
                 {new Date(interview.createdAt).toLocaleDateString()}
               </span>
             </div>
           </div>
 
           {/* Technical metadata row */}
-          <div className="mt-1 flex flex-wrap items-center gap-1 text-xs text-zinc-500">
+          <div className="mt-1 flex flex-wrap items-center gap-1 text-[11px] text-muted">
             {interview.detectedLanguage && (
               <>
                 <span>{interview.detectedLanguage}</span>
-                <span className="text-zinc-300">&middot;</span>
+                <span className="text-border">&middot;</span>
               </>
             )}
             {interview.durationSeconds && (
               <>
                 <span>{formatDuration(interview.durationSeconds)}</span>
-                <span className="text-zinc-300">&middot;</span>
+                <span className="text-border">&middot;</span>
               </>
             )}
             {interview.speakerRoster && interview.speakerRoster.length > 0 && (
@@ -262,12 +262,12 @@ export default function InterviewList() {
           <div className="mt-2">
             <StatusBadge status={interview.status} />
             {interview.status === "processing" && interview.currentStep && (
-              <span className="ml-2 text-xs text-zinc-400">
+              <span className="ml-2 text-[11px] text-faint">
                 {interview.currentStep.replace(/_/g, " ")}
               </span>
             )}
             {interview.status === "error" && interview.errorMessage && (
-              <span className="ml-2 text-xs text-red-500 truncate">
+              <span className="ml-2 text-[11px] text-error truncate">
                 {interview.errorMessage}
               </span>
             )}
@@ -275,7 +275,7 @@ export default function InterviewList() {
 
           {/* Summary preview */}
           {interview.summary && (
-            <p className="mt-2 text-sm leading-relaxed text-zinc-600 line-clamp-2">
+            <p className="mt-2 text-[13px] leading-relaxed text-body line-clamp-2">
               {interview.summary}
             </p>
           )}
