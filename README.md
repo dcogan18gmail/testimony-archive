@@ -18,6 +18,7 @@ The result is a transcript with synchronized audio playback, editable metadata, 
 
 ## Features
 
+- **Google OAuth sign-in** with per-user data isolation (each user sees only their own interviews)
 - **Synced audio player** with click-to-seek on any transcript segment
 - **Language toggle** between English translation, original language, and combined view
 - **Speaker management** with inline rename
@@ -31,6 +32,7 @@ The result is a transcript with synchronized audio playback, editable metadata, 
 - **Framework:** Next.js 16 (App Router)
 - **Database:** PostgreSQL via Neon (serverless)
 - **ORM:** Drizzle
+- **Auth:** Auth.js (next-auth v5) with Google OAuth
 - **Storage:** Vercel Blob
 - **AI:** OpenAI API (Whisper, GPT-4o Mini), AssemblyAI
 - **Audio processing:** ffmpeg.wasm (browser-side chunking)
@@ -49,6 +51,7 @@ The interface follows an editorial design system documented in [DESIGN.md](DESIG
 - Node.js 18+
 - A Neon PostgreSQL database
 - A Vercel Blob store
+- Google Cloud OAuth credentials (client ID and secret)
 - OpenAI API key
 - AssemblyAI API key
 
@@ -58,13 +61,13 @@ The interface follows an editorial design system documented in [DESIGN.md](DESIG
 git clone https://github.com/dcogan18gmail/testimony-archive.git
 cd testimony-archive
 cp .env.example .env.local
-# Fill in DATABASE_URL and BLOB_READ_WRITE_TOKEN in .env.local
+# Fill in all env vars in .env.local (see table below)
 npm install
 npx drizzle-kit push
 npm run dev
 ```
 
-On first visit, the app prompts for your OpenAI and AssemblyAI API keys. These are stored in your browser's localStorage (client-side only, never sent to the server for storage).
+On first visit, you'll sign in with Google. The app then prompts for your OpenAI and AssemblyAI API keys, which are stored in your browser's localStorage (client-side only, never sent to the server for storage).
 
 ### Environment variables
 
