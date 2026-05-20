@@ -4,8 +4,13 @@ import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "./db";
 import { users, accounts, sessions, verificationTokens } from "./schema";
 
+// Vercel often sets AUTH_URL to the production custom domain for *all* environments.
+// That makes Google OAuth on a preview deployment bounce to testimonyarchive.xyz.
+if (process.env.VERCEL_ENV === "preview" && process.env.VERCEL_URL) {
+  process.env.AUTH_URL = `https://${process.env.VERCEL_URL}`;
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  // Use the request host on Vercel preview deployments (AUTH_URL alone points at production).
   trustHost: true,
   adapter: DrizzleAdapter(db, {
     usersTable: users,
