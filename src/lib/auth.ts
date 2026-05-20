@@ -4,9 +4,12 @@ import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "./db";
 import { users, accounts, sessions, verificationTokens } from "./schema";
 
-// Vercel often sets AUTH_URL to the production custom domain for *all* environments.
-// That makes Google OAuth on a preview deployment bounce to testimonyarchive.xyz.
-if (process.env.VERCEL_ENV === "preview" && process.env.VERCEL_URL) {
+// AUTH_URL in .env.local is often set to the production domain (testimonyarchive.xyz).
+// Auth.js then sends Google OAuth callbacks there — even on localhost. trustHost alone
+// does not always override that, so we clear or replace AUTH_URL outside production.
+if (process.env.NODE_ENV === "development") {
+  delete process.env.AUTH_URL;
+} else if (process.env.VERCEL_ENV === "preview" && process.env.VERCEL_URL) {
   process.env.AUTH_URL = `https://${process.env.VERCEL_URL}`;
 }
 
