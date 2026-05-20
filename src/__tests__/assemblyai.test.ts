@@ -19,7 +19,15 @@ describe("submitToAssemblyAI", () => {
     expect(id).toBe("abc123");
     expect(mockFetch).toHaveBeenCalledWith(
       "https://api.assemblyai.com/v2/transcript",
-      expect.objectContaining({ method: "POST" })
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          audio_url: "https://example.com/audio.mp3",
+          speaker_labels: true,
+          language_detection: true,
+          speech_models: ["universal-3-pro", "universal-2"],
+        }),
+      })
     );
   });
 

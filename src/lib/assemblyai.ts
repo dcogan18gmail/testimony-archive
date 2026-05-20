@@ -25,7 +25,8 @@ export async function submitToAssemblyAI(
       audio_url: audioBlobUrl,
       speaker_labels: true,
       language_detection: true,
-      speech_models: ["universal-3-pro"],
+      // universal-3-pro alone does not cover all languages (e.g. ru); universal-2 fills the gap
+      speech_models: ["universal-3-pro", "universal-2"],
     }),
   });
 
