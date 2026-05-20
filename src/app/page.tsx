@@ -10,11 +10,8 @@ import InterviewList from "@/components/InterviewList";
 type UploadResult = {
   interviewId: string;
   blobUrl: string;
-  chunks: Uint8Array[];
   durationSeconds: number;
 };
-
-const CHUNK_DURATION_SECONDS = 30;
 
 export default function Home() {
   const { data: session } = useSession();
@@ -98,8 +95,6 @@ export default function Home() {
             key={uploadResult.interviewId}
             interviewId={uploadResult.interviewId}
             audioBlobUrl={uploadResult.blobUrl}
-            chunks={uploadResult.chunks}
-            chunkDurationSeconds={CHUNK_DURATION_SECONDS}
           />
         </div>
       )}

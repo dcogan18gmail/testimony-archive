@@ -1,36 +1,26 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import { transcribeAllChunks } from "@/lib/whisper";
-import type { WhisperSegment } from "@/lib/whisper";
 import type { AAIUtterance } from "@/lib/assemblyai";
-import type { ProcessingStep } from "@/lib/types";
 
 type PipelineProps = {
   interviewId: string;
   audioBlobUrl: string;
-  chunks: Uint8Array[];
-  chunkDurationSeconds: number;
 };
 
 type StepStatus = "pending" | "running" | "done" | "error";
 
 type PipelineState = {
-  whisper: StepStatus;
-  assemblyai: StepStatus;
-  merge: StepStatus;
+  transcribe: StepStatus;
   speakers: StepStatus;
   summary: StepStatus;
-  whisperProgress: string;
-  assemblyaiProgress: string;
+  transcribeProgress: string;
   error: string | null;
   done: boolean;
 };
 
 const STEP_LABELS: Record<string, string> = {
-  whisper: "Translating audio (Whisper)",
-  assemblyai: "Speaker detection (AssemblyAI)",
-  merge: "Merging transcripts",
+  transcribe: "Transcribing & translating (AssemblyAI)",
   speakers: "Identifying speakers",
   summary: "Generating summary",
 };
@@ -40,17 +30,12 @@ const POLL_INTERVAL = 5000;
 export default function TranscriptionPipeline({
   interviewId,
   audioBlobUrl,
-  chunks,
-  chunkDurationSeconds,
 }: PipelineProps) {
   const [state, setState] = useState<PipelineState>({
-    whisper: "pending",
-    assemblyai: "pending",
-    merge: "pending",
+    transcribe: "pending",
     speakers: "pending",
     summary: "pending",
-    whisperProgress: "",
-    assemblyaiProgress: "",
+    transcribeProgress: "",
     error: null,
     done: false,
   });
@@ -60,8 +45,11 @@ export default function TranscriptionPipeline({
   const getKeys = useCallback(() => {
     const openaiKey = localStorage.getItem("openai_api_key");
     const assemblyaiKey = localStorage.getItem("assemblyai_api_key");
-    if (!openaiKey || !assemblyaiKey) {
-      throw new Error("API keys not found. Please set them above.");
+    if (!assemblyaiKey) {
+      throw new Error("AssemblyAI API key not found. Please set it in settings.");
+    }
+    if (!openaiKey) {
+      throw new Error("OpenAI API key not found. Please set it in settings.");
     }
     return { openaiKey, assemblyaiKey };
   }, []);
@@ -69,31 +57,16 @@ export default function TranscriptionPipeline({
   const runPipeline = useCallback(async () => {
     const { openaiKey, assemblyaiKey } = getKeys();
 
-    // Step 1+2: Run Whisper and AssemblyAI in parallel
     setState((s) => ({
       ...s,
-      whisper: "running",
-      assemblyai: "running",
-      whisperProgress: "0/" + chunks.length + " chunks",
-      assemblyaiProgress: "Submitting...",
+      transcribe: "running",
+      transcribeProgress: "Submitting...",
     }));
 
-    // Start Whisper (client-side, directly to OpenAI)
-    const whisperPromise = transcribeAllChunks(
-      chunks,
-      chunkDurationSeconds,
-      openaiKey,
-      (completed, total) => {
-        setState((s) => ({
-          ...s,
-          whisperProgress: `${completed}/${total} chunks`,
-        }));
-      }
-    );
+    let utterances: AAIUtterance[];
+    let detectedLanguage: string | null;
 
-    // Start AssemblyAI (via our server)
-    const aaiPromise = (async () => {
-      // Submit
+    try {
       const startRes = await fetch("/api/assemblyai/start", {
         method: "POST",
         headers: {
@@ -105,13 +78,12 @@ export default function TranscriptionPipeline({
 
       if (!startRes.ok) {
         const err = await startRes.json();
-        throw new Error(err.error || "Failed to start AssemblyAI");
+        throw new Error(err.error || "Failed to start transcription");
       }
 
       const { transcriptId } = await startRes.json();
-      setState((s) => ({ ...s, assemblyaiProgress: "Processing..." }));
+      setState((s) => ({ ...s, transcribeProgress: "Processing..." }));
 
-      // Poll until complete
       while (true) {
         await new Promise((r) => setTimeout(r, POLL_INTERVAL));
 
@@ -122,81 +94,49 @@ export default function TranscriptionPipeline({
 
         if (!statusRes.ok) {
           const err = await statusRes.json();
-          throw new Error(err.error || "Failed to poll AssemblyAI");
+          throw new Error(err.error || "Failed to poll transcription status");
         }
 
         const result = await statusRes.json();
 
         if (result.status === "completed") {
-          return {
-            utterances: result.utterances as AAIUtterance[],
-            detectedLanguage: result.detectedLanguage as string | null,
-          };
+          utterances = result.utterances as AAIUtterance[];
+          detectedLanguage = result.detectedLanguage as string | null;
+          break;
         }
 
         if (result.status === "error") {
-          throw new Error(result.error || "AssemblyAI transcription failed");
+          throw new Error(result.error || "Transcription failed");
         }
 
         setState((s) => ({
           ...s,
-          assemblyaiProgress: `Status: ${result.status}`,
+          transcribeProgress: `Status: ${result.status}`,
         }));
       }
-    })();
 
-    // Wait for both to complete
-    let whisperSegments: WhisperSegment[];
-    let aaiUtterances: AAIUtterance[];
-    let detectedLanguage: string | null;
+      const saveRes = await fetch("/api/transcript/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ interviewId, utterances, detectedLanguage }),
+      });
 
-    try {
-      const [whisperResult, aaiResult] = await Promise.all([
-        whisperPromise,
-        aaiPromise,
-      ]);
-      whisperSegments = whisperResult;
-      aaiUtterances = aaiResult.utterances;
-      detectedLanguage = aaiResult.detectedLanguage;
-      setState((s) => ({ ...s, whisper: "done", assemblyai: "done" }));
+      if (!saveRes.ok) {
+        const err = await saveRes.json();
+        throw new Error(err.error || "Failed to save transcript");
+      }
+
+      setState((s) => ({ ...s, transcribe: "done" }));
     } catch (error) {
       const message = error instanceof Error ? error.message : "Transcription failed";
       setState((s) => ({
         ...s,
-        whisper: s.whisper === "running" ? "error" : s.whisper,
-        assemblyai: s.assemblyai === "running" ? "error" : s.assemblyai,
+        transcribe: "error",
         error: message,
       }));
       return;
     }
 
-    // Step 3: Merge
-    setState((s) => ({ ...s, merge: "running" }));
-    try {
-      const mergeRes = await fetch("/api/merge", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          interviewId,
-          whisperSegments,
-          aaiUtterances,
-          detectedLanguage,
-        }),
-      });
-
-      if (!mergeRes.ok) {
-        const err = await mergeRes.json();
-        throw new Error(err.error || "Failed to merge transcripts");
-      }
-
-      setState((s) => ({ ...s, merge: "done" }));
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Merge failed";
-      setState((s) => ({ ...s, merge: "error", error: message }));
-      return;
-    }
-
-    // Step 4: Identify speakers
     setState((s) => ({ ...s, speakers: "running" }));
     try {
       const speakersRes = await fetch("/api/identify-speakers", {
@@ -220,7 +160,6 @@ export default function TranscriptionPipeline({
       return;
     }
 
-    // Step 5: Summarize
     setState((s) => ({ ...s, summary: "running" }));
     try {
       const summaryRes = await fetch("/api/summarize", {
@@ -242,7 +181,7 @@ export default function TranscriptionPipeline({
       const message = error instanceof Error ? error.message : "Summary failed";
       setState((s) => ({ ...s, summary: "error", error: message }));
     }
-  }, [interviewId, audioBlobUrl, chunks, chunkDurationSeconds, getKeys]);
+  }, [interviewId, audioBlobUrl, getKeys]);
 
   useEffect(() => {
     if (startedRef.current) return;
@@ -250,7 +189,7 @@ export default function TranscriptionPipeline({
     runPipeline();
   }, [runPipeline]);
 
-  const steps = ["whisper", "assemblyai", "merge", "speakers", "summary"] as const;
+  const steps = ["transcribe", "speakers", "summary"] as const;
 
   return (
     <div className="w-full rounded-lg border border-border bg-card p-6">
@@ -263,15 +202,10 @@ export default function TranscriptionPipeline({
           const status = state[step] as StepStatus;
           const label = STEP_LABELS[step];
           const progress =
-            step === "whisper"
-              ? state.whisperProgress
-              : step === "assemblyai"
-                ? state.assemblyaiProgress
-                : "";
+            step === "transcribe" ? state.transcribeProgress : "";
 
           return (
             <div key={step} className="flex items-center gap-3">
-              {/* Status icon */}
               <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center">
                 {status === "pending" && (
                   <div className="h-2 w-2 rounded-full bg-faint" />
@@ -311,7 +245,6 @@ export default function TranscriptionPipeline({
                 )}
               </div>
 
-              {/* Label and progress */}
               <div className="flex-1">
                 <span
                   className={`text-[13px] ${
@@ -335,14 +268,12 @@ export default function TranscriptionPipeline({
         })}
       </div>
 
-      {/* Error display */}
       {state.error && (
         <div className="mt-4 rounded-md bg-error/10 p-3">
           <p className="text-[13px] text-error">{state.error}</p>
         </div>
       )}
 
-      {/* Done message */}
       {state.done && (
         <div className="mt-4 rounded-md bg-success/10 p-3">
           <p className="text-[13px] text-success">

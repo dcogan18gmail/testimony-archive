@@ -1,16 +1,6 @@
 "use client";
 
-/**
- * Shows progress during the upload flow. There are three stages:
- * 1. "loading" - ffmpeg.wasm is downloading (~30MB, first time only)
- * 2. "splitting" - ffmpeg is splitting the audio into 30s chunks
- * 3. "uploading" - the full file is uploading to Vercel Blob
- *
- * This component is purely visual. The parent (UploadZone) manages
- * the actual state and passes it down as props.
- */
-
-export type UploadStage = "loading" | "splitting" | "uploading" | "creating" | "done" | "error";
+export type UploadStage = "loading" | "uploading" | "creating" | "done" | "error";
 
 type Props = {
   stage: UploadStage;
@@ -21,7 +11,6 @@ type Props = {
 
 const STAGE_LABELS: Record<UploadStage, string> = {
   loading: "Loading audio processor...",
-  splitting: "Splitting audio into chunks...",
   uploading: "Uploading file...",
   creating: "Creating interview...",
   done: "Upload complete!",
@@ -42,7 +31,6 @@ export default function ProcessingStatus({ stage, progress, error, filename }: P
         )}
       </div>
 
-      {/* Progress bar */}
       {stage !== "error" && (
         <div className="mb-3 h-2 w-full overflow-hidden rounded-full bg-subtle">
           <div
@@ -54,17 +42,14 @@ export default function ProcessingStatus({ stage, progress, error, filename }: P
         </div>
       )}
 
-      {/* File name */}
       {filename && (
         <p className="text-[11px] text-faint truncate">{filename}</p>
       )}
 
-      {/* Error message */}
       {stage === "error" && error && (
         <p className="text-[13px] text-error">{error}</p>
       )}
 
-      {/* Done message */}
       {stage === "done" && (
         <div className="flex items-center gap-2 text-success">
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

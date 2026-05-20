@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { interviews } from "@/lib/schema";
 import { eq, and } from "drizzle-orm";
-import { mergeTranscripts } from "@/lib/merge";
 import { getAuthenticatedUserId } from "@/lib/auth-guard";
-import type { WhisperSegment } from "@/lib/whisper";
 import type { AAIUtterance } from "@/lib/assemblyai";
+import { mapUtterancesToSegments } from "@/lib/transcript-segments";
 
 export async function POST(request: NextRequest) {
   const userId = await getAuthenticatedUserId();
@@ -13,8 +12,7 @@ export async function POST(request: NextRequest) {
 
   let body: {
     interviewId?: string;
-    whisperSegments?: WhisperSegment[];
-    aaiUtterances?: AAIUtterance[];
+    utterances?: AAIUtterance[];
     detectedLanguage?: string;
   };
 
@@ -24,25 +22,25 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { interviewId, whisperSegments, aaiUtterances, detectedLanguage } = body;
+  const { interviewId, utterances, detectedLanguage } = body;
 
-  if (!interviewId || !whisperSegments || !aaiUtterances) {
+  if (!interviewId || !utterances) {
     return NextResponse.json(
-      { error: "interviewId, whisperSegments, and aaiUtterances are required" },
+      { error: "interviewId and utterances are required" },
       { status: 400 }
     );
   }
 
   try {
-    const merged = mergeTranscripts(whisperSegments, aaiUtterances);
+    const segments = mapUtterancesToSegments(utterances);
 
     const [updated] = await db
       .update(interviews)
       .set({
-        transcriptEnglish: merged,
-        transcriptOriginal: merged,
+        transcriptEnglish: segments,
+        transcriptOriginal: segments,
         detectedLanguage: detectedLanguage || null,
-        currentStep: "merging",
+        currentStep: "identifying_speakers",
       })
       .where(and(eq(interviews.id, interviewId), eq(interviews.userId, userId)))
       .returning({ id: interviews.id });
@@ -51,10 +49,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ segmentCount: merged.length });
+    return NextResponse.json({ segmentCount: segments.length });
   } catch (error) {
-    console.error("Merge error:", error);
-    const message = error instanceof Error ? error.message : "Failed to merge transcripts";
+    console.error("Transcript save error:", error);
+    const message = error instanceof Error ? error.message : "Failed to save transcript";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

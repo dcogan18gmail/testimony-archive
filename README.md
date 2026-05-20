@@ -8,11 +8,9 @@ An oral history transcription tool that turns audio interviews into searchable, 
 
 Upload an audio file and Testimony Archive runs a multi-step pipeline:
 
-1. **Transcribes** the audio using OpenAI Whisper (handles non-English audio with translation)
-2. **Cross-references** with AssemblyAI for speaker diarization (who said what)
-3. **Merges** both transcript sources into a unified, speaker-labeled transcript
-4. **Identifies speakers** using AI to label speakers beyond generic "Speaker A/B"
-5. **Generates a summary** of the interview content
+1. **Transcribes and translates** the full audio with AssemblyAI (original language + English per utterance, speaker diarization, aligned timestamps)
+2. **Identifies speakers** using OpenAI to label speakers beyond generic "Speaker A/B"
+3. **Generates a summary** of the interview content
 
 The result is a transcript with synchronized audio playback, editable metadata, speaker management, and DOCX export in three formats (English, original language, or combined).
 
@@ -24,7 +22,7 @@ The result is a transcript with synchronized audio playback, editable metadata, 
 - **Speaker management** with inline rename
 - **Editable metadata** (event name, location, interviewer, organization)
 - **DOCX export** in three formats with proper document formatting
-- **Drag-and-drop upload** with client-side audio chunking via ffmpeg.wasm
+- **Drag-and-drop upload** with client-side duration probing via ffmpeg.wasm
 - **Processing status UI** with real-time step tracking
 
 ## Tech stack
@@ -34,8 +32,8 @@ The result is a transcript with synchronized audio playback, editable metadata, 
 - **ORM:** Drizzle
 - **Auth:** Auth.js (next-auth v5) with Google OAuth
 - **Storage:** Vercel Blob
-- **AI:** OpenAI API (Whisper, GPT-4o Mini), AssemblyAI
-- **Audio processing:** ffmpeg.wasm (browser-side chunking)
+- **AI:** AssemblyAI (transcription, translation, diarization), OpenAI GPT-4o Mini (speaker ID, summary)
+- **Audio processing:** ffmpeg.wasm (browser-side duration probe)
 - **Styling:** Tailwind CSS 4
 - **Testing:** Vitest + React Testing Library
 - **Export:** docx.js
@@ -96,12 +94,12 @@ src/
 ├── components/           # React components
 │   ├── AudioPlayer       # Synced audio playback
 │   ├── TranscriptView    # Transcript display with language toggle
-│   ├── UploadZone        # Drag-and-drop upload with chunking
+│   ├── UploadZone        # Drag-and-drop upload
 │   └── ...
 ├── lib/                  # Business logic
 │   ├── schema.ts         # Drizzle database schema
-│   ├── merge.ts          # Transcript merging algorithm
-│   ├── whisper.ts        # OpenAI Whisper integration
+│   ├── transcript-segments.ts  # AssemblyAI utterance → segment mapping
+│   ├── assemblyai.ts     # AssemblyAI transcription + translation
 │   └── ...
 └── __tests__/            # Test suite
 ```

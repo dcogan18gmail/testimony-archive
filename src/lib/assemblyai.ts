@@ -3,12 +3,31 @@ const BASE_URL = "https://api.assemblyai.com/v2";
 export type AAIUtterance = {
   speaker: string;
   start: number; // seconds
-  end: number;   // seconds
+  end: number; // seconds
   text: string;
+  textEnglish?: string;
 };
 
+type RawUtterance = {
+  speaker: string;
+  start: number;
+  end: number;
+  text: string;
+  translated_texts?: Record<string, string>;
+};
+
+function parseUtterances(raw: RawUtterance[]): AAIUtterance[] {
+  return raw.map((u) => ({
+    speaker: u.speaker,
+    start: u.start / 1000,
+    end: u.end / 1000,
+    text: u.text.trim(),
+    textEnglish: u.translated_texts?.en?.trim(),
+  }));
+}
+
 /**
- * Submit an audio URL to AssemblyAI for transcription with speaker diarization.
+ * Submit audio for transcription with speaker diarization and English translation.
  * Returns the transcript ID for polling.
  */
 export async function submitToAssemblyAI(
@@ -27,6 +46,14 @@ export async function submitToAssemblyAI(
       language_detection: true,
       // universal-3-pro alone does not cover all languages (e.g. ru); universal-2 fills the gap
       speech_models: ["universal-3-pro", "universal-2"],
+      speech_understanding: {
+        request: {
+          translation: {
+            target_languages: ["en"],
+            match_original_utterance: true,
+          },
+        },
+      },
     }),
   });
 
@@ -41,7 +68,6 @@ export async function submitToAssemblyAI(
 
 /**
  * Poll AssemblyAI for transcript status.
- * Returns { status, utterances, detectedLanguage } when complete.
  */
 export async function pollAssemblyAI(
   transcriptId: string,
@@ -63,17 +89,9 @@ export async function pollAssemblyAI(
   const data = await res.json();
 
   if (data.status === "completed") {
-    const utterances: AAIUtterance[] = (data.utterances || []).map(
-      (u: { speaker: string; start: number; end: number; text: string }) => ({
-        speaker: u.speaker,
-        start: u.start / 1000, // ms to seconds
-        end: u.end / 1000,
-        text: u.text.trim(),
-      })
-    );
     return {
       status: "completed",
-      utterances,
+      utterances: parseUtterances(data.utterances || []),
       detectedLanguage: data.language_code || null,
       error: null,
     };

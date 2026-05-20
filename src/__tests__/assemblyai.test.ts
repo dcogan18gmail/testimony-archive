@@ -9,7 +9,7 @@ beforeEach(() => {
 });
 
 describe("submitToAssemblyAI", () => {
-  it("submits audio URL and returns transcript ID", async () => {
+  it("submits audio URL with translation and diarization", async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ id: "abc123" }),
@@ -26,6 +26,14 @@ describe("submitToAssemblyAI", () => {
           speaker_labels: true,
           language_detection: true,
           speech_models: ["universal-3-pro", "universal-2"],
+          speech_understanding: {
+            request: {
+              translation: {
+                target_languages: ["en"],
+                match_original_utterance: true,
+              },
+            },
+          },
         }),
       })
     );
@@ -43,14 +51,20 @@ describe("submitToAssemblyAI", () => {
 });
 
 describe("pollAssemblyAI", () => {
-  it("returns completed result with utterances converted from ms to seconds", async () => {
+  it("returns completed result with utterances and per-utterance English", async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: () =>
         Promise.resolve({
           status: "completed",
           utterances: [
-            { speaker: "A", start: 1000, end: 5000, text: " Hello " },
+            {
+              speaker: "A",
+              start: 1000,
+              end: 5000,
+              text: " Bonjour ",
+              translated_texts: { en: " Hello " },
+            },
           ],
           language_code: "fr",
         }),
@@ -61,7 +75,8 @@ describe("pollAssemblyAI", () => {
     expect(result.utterances).toHaveLength(1);
     expect(result.utterances[0].start).toBe(1);
     expect(result.utterances[0].end).toBe(5);
-    expect(result.utterances[0].text).toBe("Hello");
+    expect(result.utterances[0].text).toBe("Bonjour");
+    expect(result.utterances[0].textEnglish).toBe("Hello");
     expect(result.detectedLanguage).toBe("fr");
   });
 

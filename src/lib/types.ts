@@ -19,7 +19,6 @@ export type InterviewStatus = "processing" | "completed" | "error";
 export type ProcessingStep =
   | "uploading"
   | "transcribing"
-  | "merging"
   | "identifying_speakers"
   | "summarizing"
   | "finalizing";

@@ -99,7 +99,7 @@ export default function KeySetup() {
             Get Started
           </h2>
           <p className="mt-2 text-[15px] text-muted">
-            Enter your API keys to begin transcribing interviews.
+            AssemblyAI transcribes and translates audio. OpenAI labels speakers and writes summaries.
           </p>
         </div>
 
@@ -109,6 +109,7 @@ export default function KeySetup() {
               <label className="mb-1 block text-[13px] font-semibold text-body">
                 OpenAI API Key
               </label>
+              <p className="mb-1 text-[11px] text-faint">Speaker labels and summary</p>
               <input
                 type="password"
                 value={openaiKey}
@@ -121,6 +122,7 @@ export default function KeySetup() {
               <label className="mb-1 block text-[13px] font-semibold text-body">
                 AssemblyAI API Key
               </label>
+              <p className="mb-1 text-[11px] text-faint">Transcription, translation, and diarization</p>
               <input
                 type="password"
                 value={assemblyaiKey}

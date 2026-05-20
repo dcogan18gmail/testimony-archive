@@ -9,8 +9,7 @@ type ProcessingViewProps = {
 };
 
 const STEPS: { key: ProcessingStep; label: string }[] = [
-  { key: "transcribing", label: "Transcribing audio" },
-  { key: "merging", label: "Merging transcripts" },
+  { key: "transcribing", label: "Transcribing & translating" },
   { key: "identifying_speakers", label: "Identifying speakers" },
   { key: "summarizing", label: "Generating summary" },
   { key: "finalizing", label: "Finalizing" },

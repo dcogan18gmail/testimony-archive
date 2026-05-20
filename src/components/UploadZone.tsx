@@ -2,25 +2,13 @@
 
 import { useState, useRef, useCallback } from "react";
 import { upload } from "@vercel/blob/client";
-import { chunkAudio, type ChunkProgress } from "@/lib/audio-chunker";
+import { probeAudioDuration, type ProbeProgress } from "@/lib/audio-chunker";
 import { ACCEPTED_AUDIO_TYPES_SET, MAX_FILE_SIZE } from "@/lib/upload-constants";
 import ProcessingStatus, { type UploadStage } from "./ProcessingStatus";
-
-/**
- * Drag-and-drop upload zone.
- *
- * When a user drops (or selects) an audio file, this component:
- * 1. Validates file type and size
- * 2. Runs ffmpeg.wasm to split it into ~30s MP3 chunks
- * 3. Uploads the full file to Vercel Blob (client upload)
- * 4. POSTs to /api/interviews to create a DB row
- * 5. Stores chunks + interviewId in state (for Phase 3)
- */
 
 type UploadResult = {
   interviewId: string;
   blobUrl: string;
-  chunks: Uint8Array[];
   durationSeconds: number;
 };
 
@@ -39,14 +27,12 @@ export default function UploadZone({ onUploadComplete }: Props) {
   const isProcessing = stage !== null && stage !== "done" && stage !== "error";
 
   const handleFile = useCallback(async (file: File) => {
-    // Validate file type
     if (!ACCEPTED_AUDIO_TYPES_SET.has(file.type)) {
       setStage("error");
       setError(`Unsupported file type: ${file.type || "unknown"}. Use MP3, WAV, M4A, FLAC, OGG, or WebM.`);
       return;
     }
 
-    // Validate file size
     if (file.size > MAX_FILE_SIZE) {
       setStage("error");
       setError(`File is too large (${Math.round(file.size / 1024 / 1024)}MB). Maximum is 500MB.`);
@@ -57,14 +43,12 @@ export default function UploadZone({ onUploadComplete }: Props) {
     setError(undefined);
 
     try {
-      // Step 1: Split audio into chunks using ffmpeg.wasm
-      const onChunkProgress = (p: ChunkProgress) => {
+      const onProbeProgress = (p: ProbeProgress) => {
         setStage(p.stage);
         setProgress(p.progress);
       };
-      const { chunks, durationSeconds } = await chunkAudio(file, onChunkProgress);
+      const durationSeconds = await probeAudioDuration(file, onProbeProgress);
 
-      // Step 2: Upload the full file to Vercel Blob
       setStage("uploading");
       setProgress(0);
 
@@ -76,7 +60,6 @@ export default function UploadZone({ onUploadComplete }: Props) {
         },
       });
 
-      // Step 3: Create the interview row in the database
       setStage("creating");
       setProgress(1);
 
@@ -100,7 +83,7 @@ export default function UploadZone({ onUploadComplete }: Props) {
       setStage("done");
       setProgress(1);
 
-      onUploadComplete?.({ interviewId, blobUrl: blob.url, chunks, durationSeconds });
+      onUploadComplete?.({ interviewId, blobUrl: blob.url, durationSeconds });
     } catch (err) {
       console.error("Upload flow failed:", err);
       setStage("error");
@@ -132,7 +115,6 @@ export default function UploadZone({ onUploadComplete }: Props) {
     [handleFile]
   );
 
-  // If processing or done, show the status display instead of the drop zone
   if (stage !== null) {
     return (
       <div>
