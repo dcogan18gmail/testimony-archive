@@ -74,9 +74,23 @@ On first visit, you'll sign in with Google. The app then prompts for your OpenAI
 | `DATABASE_URL` | Neon PostgreSQL connection string |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob storage token |
 | `AUTH_SECRET` | Auth.js session secret (generate with `npx auth secret`) |
-| `AUTH_URL` | Production URL (e.g. `https://testimonyarchive.xyz`) |
+| `AUTH_URL` | Production URL only (e.g. `https://testimonyarchive.xyz`). Do **not** set this for Preview on Vercel — use `AUTH_TRUST_HOST=true` instead (see below). |
+| `AUTH_TRUST_HOST` | Set to `true` for **Preview** deployments on Vercel so Google sign-in stays on the preview URL |
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
+
+### Testing a preview branch on Vercel
+
+`testimonyarchive.xyz` always serves **Production** (`main`). A branch preview uses a `*.vercel.app` URL from the deployment’s **Domains** section — copy that URL exactly (do not use the custom domain).
+
+1. Open the preview deployment in Vercel → **Visit** or copy the `transcription-app-git-…vercel.app` domain.
+2. In Vercel → Project → **Settings → Environment Variables**, for **Preview** only: add `AUTH_TRUST_HOST` = `true`. Remove `AUTH_URL` from Preview if it is set.
+3. In [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials → your OAuth client → **Authorized redirect URIs**, add:
+   `https://<your-preview-domain>/api/auth/callback/google`
+   (use the full hostname from step 1; redeploy after changing env vars).
+4. Sign in on the preview URL. You should see **“Transcribing & translating (AssemblyAI)”** — not separate Whisper + merge steps.
+
+**Easiest local test:** `git checkout feature/assemblyai-unified-transcription && npm run dev` → `http://localhost:3000` (add `http://localhost:3000/api/auth/callback/google` to Google redirect URIs if needed).
 
 ### Running tests
 
